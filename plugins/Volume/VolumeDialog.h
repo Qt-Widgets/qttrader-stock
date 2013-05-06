@@ -45,7 +45,6 @@ class VolumeDialog : public QDialog
   public slots:
     void done ();
     void cancel ();
-    void help ();
     void loadSettings ();
     void saveSettings ();
     void modified ();
@@ -57,7 +56,6 @@ class VolumeDialog : public QDialog
     QDialogButtonBox *_buttonBox;
     QPushButton *_okButton;
     QPushButton *_cancelButton;
-    QString _helpFile;
     int _modified;
     
     ColorButton *_upColor;

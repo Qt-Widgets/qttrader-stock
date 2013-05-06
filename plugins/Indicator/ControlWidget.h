@@ -79,14 +79,10 @@ class ControlWidget : public QWidget
     void updateSymbols ();
     void previousSymbol ();
     void nextSymbol ();
-    void search ();
-    void search2 (QString);
     void buttonStatus ();
     void resizePanScrollBar (Plot *);
     void resizeZoom(int max);
     void listSelected ();
-    void group ();
-    void group2 (QString);
     void rangeChanged(int);
 
   protected:
@@ -97,7 +93,6 @@ class ControlWidget : public QWidget
     QList<Bars> _symbols;
     QScrollBar *_panScrollbar;
     QScrollBar *_zoomScrollbar;
-    QString _search;    
     QComboBox *_list;
     int mPlotRange;
 };

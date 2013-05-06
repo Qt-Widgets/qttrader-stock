@@ -24,17 +24,19 @@
 #define PLUGIN_INDICATOR_H
 
 #include <QObject>
+#include "QtTraderPlugin.h"
 
-#include "Plugin.h"
-
-class Indicator : public QObject, public Plugin
+class Indicator : public QObject, public IGUIPlugin
 {
   Q_OBJECT
-  Q_INTERFACES(Plugin)
+    Q_INTERFACES(IGUIPlugin)
+    Q_INTERFACES(QtTraderPlugin)
 
   public:
-    int command (PluginData *);    
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
+    QString pluginName() { return QString("Indicator core plugin");}
+    QString pluginVersion() { return QString("0.1");}
+    Entity* querySettings();
+    Widget* create();
 };
 
 #endif

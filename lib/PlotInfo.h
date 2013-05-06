@@ -33,7 +33,8 @@ class PlotInfo : public QwtPlotItem
   public:
     PlotInfo ();
     ~PlotInfo ();
-    void draw (QPainter *, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRect &) const;
+//    virtual void draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap,  const QRectF &canvasRect ) const;
+    void draw (QPainter *, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &) const;
     int rtti () const;
     void setColor (QColor);
     void setData (QStringList);

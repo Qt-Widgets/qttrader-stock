@@ -26,27 +26,31 @@
 #include <QObject>
 #include <QtSql>
 #include <QStringList>
-
-#include "Plugin.h"
 #include "Bars.h"
+#include "QtTraderPlugin.h"
 
-class DBSymbol : public QObject, Plugin
+class DBSymbol : public QObject, IDBPlugin
 {
   Q_OBJECT
-  Q_INTERFACES(Plugin)
+    Q_INTERFACES(IDBPlugin)
+    Q_INTERFACES(QtTraderPlugin)
 
   public:
-    int command (PluginData *);    
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
-    
+
+    QString pluginName() { return QString("DB Symbol");}
+    QString pluginVersion() { return QString("0.1");}
+    Entity* querySettings();
     int init ();
-    int setBars (PluginData *);
-    int getBars (PluginData *);
-    int search (PluginData *);
+    int setBars (Bars *);
+    int getBars (Bars *);
+    int newTable(Bars *) { return 0;}
+    QList<Bars> search (QString search);
     int newSymbol (Bars *);
     int getSymbol (Bars *);
     int deleteSymbol (Bars *);
     int setName (Bars *);
+    void transaction();
+    void commit();
 
   private:
     QSqlDatabase _db;

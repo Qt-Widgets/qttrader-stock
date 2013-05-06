@@ -2,7 +2,8 @@
 # SOURCE
 #####################################################
 
-HEADERS += Bar.h
+HEADERS += Bar.h \
+    QtTraderPlugin.h
 SOURCES += Bar.cpp
 HEADERS += Bars.h
 SOURCES += Bars.cpp
@@ -28,22 +29,14 @@ HEADERS += DateRange.h
 SOURCES += DateRange.cpp
 HEADERS += Dialog.h
 SOURCES += Dialog.cpp
-HEADERS += Doc.h
-SOURCES += Doc.cpp
 HEADERS += Entity.h
 SOURCES += Entity.cpp
-HEADERS += FileButton.h
-SOURCES += FileButton.cpp
-HEADERS += FontButton.h
-SOURCES += FontButton.cpp
 HEADERS += Global.h
 SOURCES += Global.cpp
 HEADERS += MAType.h
 SOURCES += MAType.cpp
 HEADERS += Marker.h
 SOURCES += Marker.cpp
-HEADERS += PickerMachine.h
-SOURCES += PickerMachine.cpp
 HEADERS += Plot.h
 SOURCES += Plot.cpp
 HEADERS += PlotDateScaleDraw.h
@@ -56,8 +49,8 @@ HEADERS += PlotScaleDraw.h
 SOURCES += PlotScaleDraw.cpp
 HEADERS += PlotSettings.h
 HEADERS += PlotStatus.h
-HEADERS += Plugin.h
-HEADERS += PluginData.h
+HEADERS +=
+HEADERS +=
 HEADERS += PluginFactory.h
 SOURCES += PluginFactory.cpp
 HEADERS += Strip.h
@@ -73,7 +66,7 @@ TEMPLATE = lib
 #DEFINES += QT_NO_DEBUG_OUTPUT QT_NO_WARNING_OUTPUT
 CONFIG += thread warn_on
 CONFIG(debug, debug|release) {
-    message("Building lib in debug mode\n")
+    message("Building lib in debug mode")
     DEFINES += DEBUG _DEBUG
 }
 
@@ -84,7 +77,7 @@ TARGET = QTTRADER
 VERSION = 0.1.0
 
 INCLUDEPATH += /usr/local/include/ta-lib
-INCLUDEPATH += /usr/local/qwt-5.2.2/include
+#INCLUDEPATH += /usr/local/qwt-5.2.2/include
 
 LIBS += -L/usr/lib
 
@@ -108,6 +101,8 @@ QT += gui
 QT += sql
 QT += network
 
+RESOURCES += \
+    ../icons.qrc
 
 !exists(./build){
   system(echo $(mkdir) build)

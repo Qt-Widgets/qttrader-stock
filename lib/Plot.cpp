@@ -2,7 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2010 Stefan S. Stratigakos
- *  Copyright (C) 2012 - Mattias Johansson
+ *  Copyright (C) 2012-2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,19 +26,6 @@
 #include "PlotStatus.h"
 #include "Global.h"
 
-#include "../pics/delete.xpm"
-#include "../pics/date.xpm"
-#include "../pics/grid.xpm"
-#include "../pics/edit.xpm"
-#include "../pics/buyarrow.xpm"
-#include "../pics/sellarrow.xpm"
-#include "../pics/fib.xpm"
-#include "../pics/horizontal.xpm"
-#include "../pics/text.xpm"
-#include "../pics/trend.xpm"
-#include "../pics/vertical.xpm"
-#include "../pics/about.xpm"
-
 #include <QtDebug>
 #include <QToolTip>
 #include <QSettings>
@@ -48,7 +35,7 @@
 #include <qwt_scale_widget.h>
 
 
-#define STEPS 150
+#define STEPS 30
 
 Plot::Plot (QString name, QWidget *p) : QwtPlot (p)
 {
@@ -64,19 +51,20 @@ Plot::Plot (QString name, QWidget *p) : QwtPlot (p)
   _plotSettings.startPos = -1;
   _plotSettings.endPos = -1;
   _plotSettings.selected = 0;
-  _plotSettings.antiAlias = TRUE;
+  _plotSettings.antiAlias = true;
   _plotSettings.barLength = BarLength::_DAILY;
   _plotSettings.status = PlotStatus::_NONE;
-  _plotSettings.info = TRUE;
+  _plotSettings.info = true;
 
   mpage = 360; //default
 
   setMinimumHeight(20);
 
   setCanvasBackground(QColor(Qt::black));
-  setMargin(0);
-  enableAxis(QwtPlot::yRight, TRUE);
-  enableAxis(QwtPlot::yLeft, FALSE);
+//TODO remove?
+  setStyleSheet("QwtPlot { padding: 0px }");
+  enableAxis(QwtPlot::yRight, true);
+  enableAxis(QwtPlot::yLeft, false);
 
   // add custom date scale drawing class to plot
   _dateScaleDraw = new PlotDateScaleDraw;
@@ -87,9 +75,9 @@ Plot::Plot (QString name, QWidget *p) : QwtPlot (p)
   setAxisScaleDraw(QwtPlot::yRight, _plotScaleDraw);
 
   _grid = new QwtPlotGrid;
-//  _grid->enableXMin(FALSE);
-  _grid->enableX(FALSE);
-  _grid->enableYMin(FALSE);
+//  _grid->enableXMin(false);
+  _grid->enableX(false);
+  _grid->enableYMin(false);
   _grid->setMajPen(QPen(Qt::gray, 0, Qt::DotLine));
   _grid->setMinPen(QPen(Qt::gray, 0 , Qt::DotLine));
   _grid->setYAxis(QwtPlot::yRight);
@@ -135,8 +123,8 @@ void Plot::clear ()
   _plotSettings.selected = 0;
 
   _dateScaleDraw->clear();
-
-  QwtPlot::clear();
+//TODO need to detach some items?
+//  QwtPlotDict::detachItems();
 }
  
 void Plot::resizeEvent (QResizeEvent *event)
@@ -194,7 +182,6 @@ void Plot::setCrossHairsColor (QColor d)
 
 void Plot::setGrid (bool d)
 {
-//  _grid->enableX(d);
   _grid->enableY(d);
   replot();
 }
@@ -203,7 +190,7 @@ void Plot::setInfo (bool d)
 {
   _plotSettings.info = d;
   
-  if (d == FALSE)
+  if (d == false)
   {
     _plotInfo->setData(QStringList());
     replot();
@@ -219,7 +206,7 @@ void Plot::setFont (QFont d)
 
 void Plot::setLogScaling (bool d)
 {
-  if (d == TRUE)
+  if (d == true)
     setAxisScaleEngine(QwtPlot::yRight, new QwtLog10ScaleEngine);
   else
     setAxisScaleEngine(QwtPlot::yRight, new QwtLinearScaleEngine);
@@ -248,7 +235,7 @@ void Plot::setHighLow ()
 {
   _plotSettings.high = 0;
   _plotSettings.low = 0;
-  bool flag = FALSE;
+  bool flag = false;
 
   QHashIterator<QString, Curve *> it(_plotSettings.curves);
   while (it.hasNext())
@@ -263,7 +250,7 @@ void Plot::setHighLow ()
     {
       _plotSettings.high = h;
       _plotSettings.low = l;
-      flag = TRUE;
+      flag = true;
     }
     else
     {
@@ -289,7 +276,7 @@ void Plot::setHighLow ()
     {
       _plotSettings.high = h;
       _plotSettings.low = l;
-      flag = TRUE;
+      flag = true;
     }
     else
     {
@@ -511,7 +498,7 @@ void Plot::panScrollBarSize (int &page, int &max)
     if (max < 0)
     {
       qDebug() << "ERROR: max scrollbar value less than null";
-//      Q_ASSERT(FALSE);
+//      Q_ASSERT(false);
     }
   }
 }
@@ -547,30 +534,33 @@ void Plot::createMenu ()
 
   _menu = new QMenu(this);
   
-  _dateAction = new QAction(QIcon(date_xpm), tr("&Date"), this);
+  _dateAction = new QAction(QIcon(":icons/calendar"), tr("Show &Dates"), this);
+  _dateAction->setIconVisibleInMenu(true);
   _dateAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
-  _dateAction->setToolTip(tr("Date"));
-  _dateAction->setStatusTip(tr("Date"));
-  _dateAction->setCheckable(TRUE);
-  _dateAction->setChecked(TRUE);
+  _dateAction->setToolTip(tr("Show/Hide Date"));
+  _dateAction->setStatusTip(tr("Show/Hide Date"));
+  _dateAction->setCheckable(true);
+  _dateAction->setChecked(true);
   connect(_dateAction, SIGNAL(triggered(bool)), this, SLOT(showDate(bool)));
   _menu->addAction(_dateAction);
 
-  _gridAction = new QAction(QIcon(grid_xpm), tr("&Grid"), this);
+  _gridAction = new QAction(QIcon(":icons/grid"), tr("Show &Grid"), this);
+  _gridAction->setIconVisibleInMenu(true);
   _gridAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
-  _gridAction->setToolTip(tr("Grid"));
-  _gridAction->setStatusTip(tr("Grid"));
-  _gridAction->setCheckable(TRUE);
-  _gridAction->setChecked(TRUE);
+  _gridAction->setToolTip(tr("Show/Hide Grid"));
+  _gridAction->setStatusTip(tr("Show/Hide Grid"));
+  _gridAction->setCheckable(true);
+  _gridAction->setChecked(true);
   connect(_gridAction, SIGNAL(triggered(bool)), this, SLOT(setGrid(bool)));
   _menu->addAction(_gridAction);
 
-  _infoAction = new QAction(QIcon(about_xpm), tr("Bar &Info"), this);
+  _infoAction = new QAction(QIcon(":icons/info"), tr("Show Bar &Info"), this);
+  _infoAction->setIconVisibleInMenu(true);
   _infoAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
-  _infoAction->setToolTip(tr("Bar Info"));
-  _infoAction->setStatusTip(tr("Bar Info"));
-  _infoAction->setCheckable(TRUE);
-  _infoAction->setChecked(TRUE);
+  _infoAction->setToolTip(tr("Show/Hide Bar Info"));
+  _infoAction->setStatusTip(tr("Show/Hide Bar Info"));
+  _infoAction->setCheckable(true);
+  _infoAction->setChecked(true);
   connect(_infoAction, SIGNAL(triggered(bool)), this, SLOT(setInfo(bool)));
   _menu->addAction(_infoAction);
 
@@ -581,68 +571,44 @@ void Plot::createMenu ()
   mm->setTitle(tr("New Plot Marker..."));
   connect(mm, SIGNAL(triggered(QAction *)), this, SLOT(markerMenuSelected(QAction *)));
   _menu->addMenu(mm);
-  
+
   // buy
-  QAction *a = new QAction(QIcon(buyarrow_xpm), tr("&Buy"), this);
+  QAction *a = new QAction(QIcon(":icons/buy"), tr("&Buy"), this);
   a->setToolTip(tr("Create Buy Arrow Plot Marker"));
+  a->setIconVisibleInMenu(true);
   a->setStatusTip(QString(tr("Create Buy Arrow Plot Marker")));
   a->setData(QVariant("MarkerBuy"));
   mm->addAction(a);
 
-  // hline
-  a = new QAction(QIcon(horizontal_xpm), tr("&HLine"), this);
-  a->setToolTip(tr("Create Horizontal Line Plot Marker"));
-  a->setStatusTip(QString(tr("Create Horizontal Line Plot Marker")));
-  a->setData(QVariant("MarkerHLine"));
-  mm->addAction(a);
-
-  // retracement
-  a = new QAction(QIcon(fib_xpm), tr("&Retracement"), this);
-  a->setToolTip(tr("Create Retracement Levels Plot Marker"));
-  a->setStatusTip(QString(tr("Create Retracement Levels Plot Marker")));
-  a->setData(QVariant("MarkerRetracement"));
-  mm->addAction(a);
-
   // sell
-  a = new QAction(QIcon(sellarrow_xpm), tr("&Sell"), this);
+  a = new QAction(QIcon(":icons/sell"), tr("&Sell"), this);
   a->setToolTip(tr("Create Sell Arrow Plot Marker"));
+  a->setIconVisibleInMenu(true);
   a->setStatusTip(QString(tr("Create Sell Arrow Plot Marker")));
   a->setData(QVariant("MarkerSell"));
   mm->addAction(a);
 
-  // text
-  a = new QAction(QIcon(text_xpm), tr("&Text"), this);
-  a->setToolTip(tr("Create Text Plot Marker"));
-  a->setStatusTip(QString(tr("Create Text Plot Marker")));
-  a->setData(QVariant("MarkerText"));
-  mm->addAction(a);
-
   // tline
-  a = new QAction(QIcon(trend_xpm), tr("T&Line"), this);
+  a = new QAction(QIcon(":icons/trend"), tr("Trend &Line"), this);
+  a->setIconVisibleInMenu(true);
   a->setToolTip(tr("Create Trend Line Plot Marker"));
   a->setStatusTip(QString(tr("Create Trend Line Plot Marker")));
   a->setData(QVariant("MarkerTLine"));
   mm->addAction(a);
 
-  // vline
-  a = new QAction(QIcon(vertical_xpm), tr("&VLine"), this);
-  a->setToolTip(tr("Create Vertical Line Plot Marker"));
-  a->setStatusTip(QString(tr("Create Vertical Line Plot Marker")));
-  a->setData(QVariant("MarkerVLine"));
+  // tline
+  a = new QAction(QIcon(":icons/trend"), tr("&Horizontal Line"), this);
+  a->setIconVisibleInMenu(true);
+  a->setToolTip(tr("Create Trend Line Plot Marker"));
+  a->setStatusTip(QString(tr("Create Trend Line Plot Marker")));
+  a->setData(QVariant("MarkerHLine"));
   mm->addAction(a);
-  
-  // delete all chart objects
-  a = new QAction(QIcon(delete_xpm), tr("Delete All Plot &Markers"), this);
-  a->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_M));
-  a->setToolTip(tr("Delete All Plot Markers"));
-  a->setStatusTip(tr("Delete All Plot Markers"));
-  connect(a, SIGNAL(triggered(bool)), this, SLOT(deleteAllMarkersDialog()));
-  _menu->addAction(a);
 
   // marker menu
   _markerMenu = new QMenu(this);
-  _markerMenu->addAction(QIcon(edit_xpm), QObject::tr("&Edit"), this, SLOT(markerDialog()), QKeySequence(Qt::ALT+Qt::Key_E));
-  _markerMenu->addAction(QIcon(delete_xpm), QObject::tr("&Delete"), this, SLOT(deleteMarker()), QKeySequence(Qt::ALT+Qt::Key_D));
+  _markerMenu->addAction(QIcon(":icons/edit"), QObject::tr("&Edit"), this, SLOT(markerDialog()), QKeySequence(Qt::ALT+Qt::Key_E));
+  _markerMenu->addAction(QIcon(":icons/delete"), QObject::tr("&Delete"), this, SLOT(deleteMarker()), QKeySequence(Qt::ALT+Qt::Key_D));
+  _markerMenu->menuAction()->setIconVisibleInMenu(true);
 }
 
 //********************************************************************
@@ -664,7 +630,7 @@ void Plot::newMarker (QString plugin)
   _plotSettings.selected = new Marker(plugin);
   
   Entity *e = _plotSettings.selected->settings();
-  
+  // TODO, null check!
   QVariant *tset = e->get(QString("symbol"));
   tset->setValue(g_symbol->symbol());
   
@@ -675,7 +641,7 @@ void Plot::newMarker (QString plugin)
   _plotSettings.markers.insert(id, _plotSettings.selected);
   
   _plotSettings.selected->attach(this);
-  _plotSettings.selected->setModified(TRUE);
+  _plotSettings.selected->setModified(true);
   _plotSettings.selected->create(_plotSettings.status);
 }
 
@@ -742,21 +708,17 @@ void Plot::markerDialog ()
   QVariant *plugin = e->get(QString("plugin"));
   if (! plugin)
     return;
-  
-  PluginFactory fac;
-  Plugin *plug = fac.load(plugin->toString());
+
+  IMarkerPlugin *plug =dynamic_cast<IMarkerPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(plugin->toString()));
   if (! plug)
     return;
 
-  PluginData pd;
-  pd.command = QString("dialog");
-  pd.dialogParent = this;
-  pd.settings = e;
-  if (! plug->command(&pd))
+  QDialog* pDialog = plug->getDialog(this, e);
+  if (!pDialog)
     return;
 
-  connect(pd.dialog, SIGNAL(accepted()), this, SLOT(markerDialog2()));
-  pd.dialog->show();
+  connect(pDialog, SIGNAL(accepted()), this, SLOT(markerDialog2()));
+  pDialog->show();
 }
 
 void Plot::markerDialog2 ()
@@ -768,29 +730,13 @@ void Plot::markerDialog2 ()
   if (! e)
     return;
   
-  _plotSettings.selected->setModified(TRUE);
+  _plotSettings.selected->setModified(true);
 
   setHighLow();
   replot();
 }
 
 void Plot::deleteMarker ()
-{
-    qDebug() << "Delete marker sent";
-    deleteMarker2();
-/*
-  if (! _plotSettings.markers.size())
-    return;
-
-  DialogConfirm *dialog = new DialogConfirm(this);
-  dialog->setMessage(tr("Confirm delete selected plot marker"));
-  connect(dialog, SIGNAL(accepted()), this, SLOT(deleteMarker2()));
-  dialog->show();
-  */
-}
-
-
-void Plot::deleteMarker2 ()
 {
   if (! _plotSettings.selected)
     return;
@@ -830,7 +776,7 @@ void Plot::setPage(int i){
 //********************************************************************
 
 
-/* Calculates the starting position for the plot/scrollbar
+/** Calculates the starting position for the plot/scrollbar
   *
   * @return the start position
   */

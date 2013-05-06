@@ -44,7 +44,6 @@ class MarkerHLineDialog : public QDialog
   public slots:
     void done ();
     void cancel ();
-    void help ();
     void loadSettings ();
     void saveSettings ();
     void valueChanged ();

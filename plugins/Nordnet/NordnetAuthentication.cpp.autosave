@@ -1,0 +1,231 @@
+/* Copyright 2013 Mattias Johansson
+ * All rights reserved
+ */
+
+#include "qttrader_defines.h"
+#include "NordnetAuthentication.h"
+#include <QVariant>
+#include <QMap>
+#include <QString>
+#include <QDir>
+#include <QUrl>
+#include <QDateTime>
+#include <QDebug>
+#include <QNetworkRequest>
+#include <QNetworkAccessManager>
+#include <QSslConfiguration>
+#include <QNetworkReply>
+#include <qjson/parser.h>
+#include <QAuthenticator>
+
+#include <openssl/sha.h>
+#include <openssl/hmac.h>
+#include <openssl/evp.h>
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+#include <openssl/x509v3.h>
+#include <openssl/objects.h>
+#include <openssl/pem.h>
+#include <openssl/evp.h>
+#include <curl/curl.h>
+
+#define PUBLIC_KEY_FILE "NEXTAPI_TEST_public.pem"
+#define LOGIN_STRING "https://api.test.nordnet.se/next/1/"
+
+using namespace std;
+using namespace QJson;
+
+NordnetAuthentication::NordnetAuthentication(){
+    m_pSession = 0;
+    m_pNam = new QNetworkAccessManager();
+    connect(m_pNam, SIGNAL(sslErrors(QNetworkReply*, QList<QSslError>)), this, SLOT(slotAll()));
+}
+
+NordnetAuthentication::~NordnetAuthentication(){
+    delete m_pNam;
+    m_pNam = 0;
+    if(m_pSession)
+        delete m_pSession;
+}
+
+void NordnetAuthentication::login(QString user, QString password)
+{
+   QNetworkRequest request;
+   QNetworkReply* reply;
+   request.setSslConfiguration(QSslConfiguration::defaultConfiguration());
+
+   request.setRawHeader("Accept-Language", "sv");
+   request.setRawHeader("Accept", "application/json");
+   request.setRawHeader("Content-Type", "application/x-www-form-urlencoded");
+   request.setUrl(QUrl(QString(LOGIN_STRING).append("login")));
+
+
+   QByteArray username64 = user.toAscii().toBase64();
+   QByteArray password64 = password.toAscii().toBase64();
+   QByteArray timestamp64 = timestamp_in_ms().toAscii().toBase64();
+   QString toEncrypt = QString(username64).append(":").append(password64).append(":").append(timestamp64);
+   unsigned char encryptedStore[2560] = {0};
+   QByteArray encrypted = QByteArray((const char*)encrypt(toEncrypt, encryptedStore), 256);
+   QByteArray byteArray = QUrl::toPercentEncoding(QString(encrypted.toBase64()));
+   QString dataLogin = QString("auth=").append(QString(byteArray)).append("&service=NEXTAPI");
+   qWarning() << "URL: " << dataLogin;
+
+   connect(m_pNam, SIGNAL(finished(QNetworkReply*)), this, SLOT(loginFinished(QNetworkReply*)));
+   reply = m_pNam->post(request, dataLogin.toAscii());
+
+   connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors()));
+   connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
+}
+
+void NordnetAuthentication::logout()
+{
+    deleteRequest(QString("login/").append(m_pSession->getSession()));
+}
+
+void NordnetAuthentication::getRequest(QString get)
+{
+   QNetworkRequest request = authenticateHeader(getHeader());
+   QNetworkReply* reply;
+
+   QString logoutString = QString(LOGIN_STRING).append(get);
+   request.setUrl(QUrl(logoutString));
+
+   reply = m_pNam->get(request);
+
+   connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors()));
+   connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
+}
+
+void NordnetAuthentication::postRequest(QString post, QString data)
+{
+   QNetworkRequest request = authenticateHeader(getHeader());
+   QNetworkReply* reply;
+
+   QString logoutString = QString(LOGIN_STRING).append(post);
+   request.setUrl(QUrl(logoutString));
+
+   reply = m_pNam->post(request, data.toAscii());
+
+   connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors()));
+   connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
+}
+
+void NordnetAuthentication::putRequest(QString post, QString data)
+{
+   QNetworkRequest request = authenticateHeader(getHeader());
+   QNetworkReply* reply;
+
+   QString logoutString = QString(LOGIN_STRING).append(post);
+   request.setUrl(QUrl(logoutString));
+
+   reply = m_pNam->put(request, data.toAscii());
+
+   connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors()));
+   connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
+}
+
+
+void NordnetAuthentication::deleteRequest(QString post)
+{
+   QNetworkRequest request = authenticateHeader(getHeader());
+   QNetworkReply* reply;
+
+   QString logoutString = QString(LOGIN_STRING).append(post);
+   request.setUrl(QUrl(logoutString));
+   reply = m_pNam->sendCustomRequest(request, "DELETE");
+
+   connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors()));
+   connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
+}
+
+void NordnetAuthentication::finished(QNetworkReply* reply){
+    emit answer(parseReply(reply));
+}
+
+void NordnetAuthentication::loginFinished(QNetworkReply* reply){
+    disconnect(m_pNam, SIGNAL(finished(QNetworkReply*)), this, SLOT(loginFinished(QNetworkReply*)));
+    connect(m_pNam, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
+    parseLogin(reply);
+    QByteArray array = reply->readAll();
+    QString toEmit(array);
+    emit answer(toEmit);
+}
+
+QString NordnetAuthentication::timestamp_in_ms()
+{
+  QDateTime time;
+  return QString(time.toTime_t()).append("000");
+}
+
+unsigned char* NordnetAuthentication::encrypt(const QString &s, unsigned char *encrypted) {
+   RSA *public_key;
+   FILE *fp;
+   OpenSSL_add_all_algorithms();
+
+#ifdef DEBUG
+    QString dirString = QDir::currentPath();
+#else
+    QString dirString = INSTALL_PLUGIN_DIR;
+#endif
+
+   QDir dir = QDir(dirString);
+   const char* pfileToOpen = dir.absoluteFilePath(PUBLIC_KEY_FILE).toStdString().c_str();
+   fp = fopen(pfileToOpen,"r");
+   public_key = PEM_read_RSA_PUBKEY(fp, NULL, NULL, NULL);
+   fclose(fp);
+
+   if (!public_key) {
+       qFatal("Can't read public key. Recovery unpossible");
+       exit(1);
+   }
+   RSA_public_encrypt(s.length(), reinterpret_cast<unsigned char*>(const_cast<char *>(s.toStdString().c_str())), encrypted, public_key, RSA_PKCS1_PADDING);
+   RSA_free(public_key);
+
+   return encrypted;
+ }
+
+QVariant NordnetAuthentication::parseReply(QNetworkReply *reply)
+{
+    Parser parser;
+    bool result;
+
+    QByteArray array = reply->readAll();
+
+    QVariant variant = parser.parse(array, &result);
+
+    emit answer(QString(array));
+
+    if (!result) {
+        qWarning("An error occured during parsing");
+        return variant;
+    }
+    return variant;
+}
+
+void NordnetAuthentication::error(QNetworkReply::NetworkError)
+{
+    qWarning () << "Found error";
+}
+
+void NordnetAuthentication::sslErrors()
+{
+    qWarning () << "Found sslErrors";
+}
+
+QNetworkRequest NordnetAuthentication::authenticateHeader(QNetworkRequest header){
+    QString concatenated = QString(m_pSession->getSession()) + ":" + QString(m_pSession->getSession());
+    QByteArray data = concatenated.toLocal8Bit().toBase64();
+    QString headerData = "Basic " + data;
+    header.setRawHeader("Authorization", headerData.toLocal8Bit());
+    return header;
+}
+
+QNetworkRequest NordnetAuthentication::getHeader(){
+    QNetworkRequest request;
+    QSslConfiguration sslConfiguration = QSslConfiguration::defaultConfiguration();
+    request.setSslConfiguration(sslConfiguration);
+    request.setRawHeader("Accept-Language", "sv");
+    request.setRawHeader("Accept", "application/json");
+    request.setRawHeader("Content-Type", "application/x-www-form-urlencoded");
+    return request;
+}

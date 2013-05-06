@@ -31,82 +31,42 @@
 #include "VolumeDialog.h"
 
 
-int
-Volume::command (PluginData *pd)
+QDialog* Volume::dialog(QWidget *dialogParent, Entity* settings)
 {
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "dialog" << "runIndicator" << "settings";
-  
-  switch (cl.indexOf(pd->command))
+  if (!dialogParent || !settings)
   {
-    case 0: // type
-      pd->type = QString("indicator");
-      rc = 1;
-      break;
-    case 1: // dialog
-      rc = dialog(pd);
-      break;
-    case 2: // runIndicator
-      rc = run(pd);
-      break;
-    case 3: // settings
-      rc = settings(pd);
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
-}
-
-int
-Volume::dialog (PluginData *pd)
-{
-  if (! pd->dialogParent)
-  {
-    qDebug() << "Volume::dialog: invalid parent";
+    qDebug() << "Volume::dialog: invalid arguments";
     return 0;
   }
-  
-  if (! pd->settings)
-  {
-    qDebug() << "Volume::dialog: invalid settings";
-    return 0;
-  }
-  
-  VolumeDialog *dialog = new VolumeDialog(pd->dialogParent);
-  dialog->setGUI(pd->settings);
-  pd->dialog = dialog;
-  
-  return 1;
+  VolumeDialog *dialog = new VolumeDialog(dialogParent);
+  dialog->setGUI(settings);
+  return dialog;
 }
 
-int
-Volume::run (PluginData *pd)
+QList<Curve*> Volume::runIndicator (Entity* settings)
 {
+  QList<Curve*> curves;
   if (! g_symbol)
-    return 0;
+    return curves;
   
-  QVariant *var = pd->settings->get(QString("upColor"));
+  QVariant *var = settings->get(QString("upColor"));
   if (! var)
-    return 0;
+    return curves;
   QColor uc(var->toString());
   
-  var = pd->settings->get(QString("downColor"));
+  var = settings->get(QString("downColor"));
   if (! var)
-    return 0;
+    return curves;
   QColor dc(var->toString());
   
-  var = pd->settings->get(QString("neutralColor"));
+  var = settings->get(QString("neutralColor"));
   if (! var)
-    return 0;
+    return curves;
   QColor nc(var->toString());
   
-  QVariant *label = pd->settings->get(QString("label"));
+  QVariant *label = settings->get(QString("label"));
   if (! label)
-    return 0;
+    return curves;
 
   Curve *vol = new Curve(QString("CurveHistogram"));
   vol->setStyle(CurveHistogramType::_BAR);
@@ -139,17 +99,16 @@ Volume::run (PluginData *pd)
     }
   }  
 
-  pd->curves << vol;
+  curves << vol;
   
-  Curve *ma = getMA(pd->settings);
+  Curve *ma = getMA(settings);
   if (ma)
-    pd->curves << ma;
+    curves << ma;
   
-  return 1;
+  return curves;
 }
 
-Curve *
-Volume::getMA (Entity *settings)
+Curve* Volume::getMA (Entity *settings)
 {
   QVariant *type = settings->get(QString("maType"));
   if (! type)
@@ -191,8 +150,7 @@ Volume::getMA (Entity *settings)
   return curve;
 }
 
-int
-Volume::getMA (QString inKey, QString outKey, int type, int period)
+int Volume::getMA (QString inKey, QString outKey, int type, int period)
 {
   if (! g_symbol)
     return 0;
@@ -241,42 +199,32 @@ Volume::getMA (QString inKey, QString outKey, int type, int period)
   return 1;
 }
 
-int
-Volume::settings (PluginData *pd)
+Entity* Volume::querySettings ()
 {
-  Entity *command = new Entity;
+  Entity *pEntity = new Entity;
   
   // plugin
-  command->set(QString("plugin"), new QVariant(QString("Volume")));
-  command->set(QString("type"), new QVariant(QString("indicator")));
-  command->set(QString("upColor"), new QVariant(QString("green")));
-  command->set(QString("downColor"), new QVariant(QString("red")));
-  command->set(QString("neutralColor"), new QVariant(QString("blue")));
-  command->set(QString("label"), new QVariant(QString("VOL")));
+  pEntity->set(QString("plugin"), new QVariant(QString("Volume")));
+  pEntity->set(QString("type"), new QVariant(QString("indicator")));
+  pEntity->set(QString("upColor"), new QVariant(QString("green")));
+  pEntity->set(QString("downColor"), new QVariant(QString("red")));
+  pEntity->set(QString("neutralColor"), new QVariant(QString("blue")));
+  pEntity->set(QString("label"), new QVariant(QString("VOL")));
 
   MAType mat;
-  command->set(QString("maType"), new QVariant(mat.indexToString(MAType::_EMA)));
+  pEntity->set(QString("maType"), new QVariant(mat.indexToString(MAType::_EMA)));
 
   // style
   CurveLineType clt;
-  command->set(QString("maStyle"), new QVariant(clt.indexToString(CurveLineType::_SOLID)));
+  pEntity->set(QString("maStyle"), new QVariant(clt.indexToString(CurveLineType::_SOLID)));
   
-  command->set(QString("maWidth"), new QVariant(1));
-  command->set(QString("maColor"), new QVariant(QString("yellow")));
-  command->set(QString("maPeriod"), new QVariant(10));
-  command->set(QString("maLabel"), new QVariant(QString("MA")));
+  pEntity->set(QString("maWidth"), new QVariant(1));
+  pEntity->set(QString("maColor"), new QVariant(QString("yellow")));
+  pEntity->set(QString("maPeriod"), new QVariant(10));
+  pEntity->set(QString("maLabel"), new QVariant(QString("MA")));
   
-  pd->settings = command;
-  
-  return 1;
+  return pEntity;
 }
-
-int
-Volume::draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *)
-{
-  return 0;
-}
-
 
 // do not remove
 Q_EXPORT_PLUGIN2(volume, Volume);

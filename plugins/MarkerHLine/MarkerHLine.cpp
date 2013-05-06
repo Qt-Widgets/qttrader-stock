@@ -20,6 +20,7 @@
  */
 
 
+#include "MarkerHLineDialog.h"
 #include "MarkerHLine.h"
 #include "Strip.h"
 #include "Marker.h"
@@ -28,48 +29,7 @@
 
 #include <QtGui>
 
-
-int
-MarkerHLine::command (PluginData *pd)
-{
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "info" << "highLow" << "move" << "click" << "create" << "settings";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("marker");
-      rc = 1;
-      break;
-    case 1: // info
-      rc = info(pd);
-      break;
-    case 2: // highLow
-      rc = highLow(pd);
-      break;
-    case 3: // move
-      rc = move(pd);
-      break;
-    case 4: // click
-      rc = click(pd);
-      break;
-    case 5: // create
-      rc = create(pd);
-      break;
-    case 6: // settings
-      rc = settings(pd);
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
-}
-
-int
-MarkerHLine::draw (QPainter *p, const QwtScaleMap &, const QwtScaleMap &yMap, const QRect &, void *m)
+int MarkerHLine::draw (QPainter *p, const QwtScaleMap &, const QwtScaleMap &yMap, const QRectF &, void *m)
 {
   Marker *hl = (Marker *) m;
   Entity *e = hl->settings();
@@ -148,16 +108,9 @@ MarkerHLine::draw (QPainter *p, const QwtScaleMap &, const QwtScaleMap &yMap, co
   return 1;
 }
 
-int
-MarkerHLine::info (PluginData *pd)
-{
-  if (! pd->data)
-    return 0;
-  
-  Marker *hl = (Marker *) pd->data;
-  
-  Entity *e = hl->settings();
-  QVariant *price = e->get(QString("price"));
+int MarkerHLine::info (Entity *pEntity, QStringList &info)
+{ 
+  QVariant *price = pEntity->get(QString("price"));
   if (! price)
     return 0;
 
@@ -165,22 +118,16 @@ MarkerHLine::info (PluginData *pd)
   QString ts;
   strip.strip(price->toDouble(), 4, ts);
   
-  pd->info << QString("HLine=") + ts;
+  info << QString("HLine=") + ts;
   
   return 1;
 }
 
-int
-MarkerHLine::move (PluginData *pd)
+int MarkerHLine::onMove(Marker* pMarker, int &status, QPoint point)
 {
-  if (! pd->data)
-    return 0;
+  Entity *e = pMarker->settings();
   
-  Marker *hl = (Marker *) pd->data;
-  
-  Entity *e = hl->settings();
-  
-  switch (pd->status)
+  switch (status)
   {
     case PlotStatus::_MOVE:
     {
@@ -188,12 +135,12 @@ MarkerHLine::move (PluginData *pd)
       if (! price)
         return 0;
       
-      QwtScaleMap map = hl->plot()->canvasMap(QwtPlot::yRight);
-      price->setValue(map.invTransform((double) pd->point.y()));
+      QwtScaleMap map = pMarker->plot()->canvasMap(QwtPlot::yRight);
+      price->setValue(map.invTransform((double) point.y()));
 
-      hl->plot()->replot();
+      pMarker->plot()->replot();
 
-      hl->setModified(TRUE);
+      pMarker->setModified(TRUE);
       break;
     }
     default:
@@ -203,61 +150,48 @@ MarkerHLine::move (PluginData *pd)
   return 1;
 }
 
-int
-MarkerHLine::highLow (PluginData *pd)
+int MarkerHLine::highLow (Entity* pEntity, int &high, int &low, QwtPlot* /*pPlot*/, int /*start*/, int /*end*/)
 {
-  if (! pd->data)
-    return 0;
-  
-  Marker *hl = (Marker *) pd->data;
-  
-  Entity *e = hl->settings();
-  QVariant *price = e->get(QString("price"));
+  QVariant *price = pEntity->get(QString("price"));
   if (! price)
     return 0;
 
-  pd->high = price->toDouble();
-  pd->low = price->toDouble();
+  high = price->toDouble();
+  low = price->toDouble();
 
   return 1;
 }
 
-int
-MarkerHLine::click (PluginData *pd)
+int MarkerHLine::onClick(Marker* pMarker, int &status, QPoint point, int button)
 {
-  if (! pd->data)
-    return 0;
-  
-  Marker *hl = (Marker *) pd->data;
-  
-  switch ((PlotStatus::Key) pd->status)
+  switch ((PlotStatus::Key) status)
   {
     case PlotStatus::_SELECTED:
     {
-      switch (pd->button)
+      switch (button)
       {
         case Qt::LeftButton:
-          if (hl->isGrabSelected(pd->point))
+          if (pMarker->isGrabSelected(point))
           {
-            pd->status = PlotStatus::_MOVE;
+            status = PlotStatus::_MOVE;
             return 1;
           }
 
-          if (! hl->isSelected(pd->point))
+          if (! pMarker->isSelected(point))
           {
-            pd->status = PlotStatus::_NONE;
-            hl->setSelected(FALSE);
+            status = PlotStatus::_NONE;
+            pMarker->setSelected(FALSE);
 
-            Plot *tplot = (Plot *) hl->plot();
+            Plot *tplot = (Plot *) pMarker->plot();
             tplot->unselectMarker();
 
-            hl->plot()->replot();
+            pMarker->plot()->replot();
             return 1;
           }
           break;
         case Qt::RightButton:
         {
-          Plot *p = (Plot *) hl->plot();
+          Plot *p = (Plot *) pMarker->plot();
           p->showMarkerMenu();
           break;
         }
@@ -269,10 +203,10 @@ MarkerHLine::click (PluginData *pd)
     }
     case PlotStatus::_MOVE:
     {
-      switch (pd->button)
+      switch (button)
       {
         case Qt::LeftButton:
-          pd->status = PlotStatus::_SELECTED;
+          status = PlotStatus::_SELECTED;
           return 1;
         default:
           break;
@@ -282,19 +216,19 @@ MarkerHLine::click (PluginData *pd)
     }
     default: // _None
     {
-      switch (pd->button)
+      switch (button)
       {
         case Qt::LeftButton:
         {
-          if (hl->isSelected(pd->point))
+          if (pMarker->isSelected(point))
           {
-            pd->status = PlotStatus::_SELECTED;
-            hl->setSelected(TRUE);
+            status = PlotStatus::_SELECTED;
+            pMarker->setSelected(TRUE);
 
-            Plot *tplot = (Plot *) hl->plot();
-            tplot->selectMarker(hl->ID());
+            Plot *tplot = (Plot *) pMarker->plot();
+            tplot->selectMarker(pMarker->ID());
 
-            hl->plot()->replot();
+            pMarker->plot()->replot();
             return 1;
           }
           break;
@@ -310,22 +244,15 @@ MarkerHLine::click (PluginData *pd)
   return 1;
 }
 
-int
-MarkerHLine::create (PluginData *pd)
+int MarkerHLine::create(Marker* pMarker, int &status)
 {
-  if (! pd->data)
-    return 0;
-  
-  Marker *hl = (Marker *) pd->data;
-  
-  pd->status = PlotStatus::_MOVE;
-  hl->setSelected(TRUE);
+  status = PlotStatus::_MOVE;
+  pMarker->setSelected(TRUE);
   emit signalMessage(QObject::tr("Place HLine marker"));
   return 1;
 }
 
-int
-MarkerHLine::settings (PluginData *pd)
+Entity* MarkerHLine::querySettings ()
 {
   Entity *e = new Entity;
   e->set(QString("plot"), new QVariant(QString()));
@@ -334,10 +261,20 @@ MarkerHLine::settings (PluginData *pd)
   e->set(QString("plugin"), new QVariant(QString("MarkerHLine")));
   e->set(QString("price"), new QVariant(0.0));
   e->set(QString("color"), new QVariant(QString("red")));
-  pd->settings = e;
-  
-  return 1;
+  return e;
+}
+
+QDialog* MarkerHLine::getDialog(QWidget* dialogParent, Entity* settings)
+{
+    if (!dialogParent || !settings){
+      qDebug() << "MarkerHLine::getDialog: invalid arguments";
+      return 0;
+    }
+
+    MarkerHLineDialog *dialog = new MarkerHLineDialog(dialogParent);
+    dialog->setGUI(settings);
+    return dialog;
 }
 
 // do not remove
-Q_EXPORT_PLUGIN2(markerhline, MarkerHLine);
+Q_EXPORT_PLUGIN2(markerhline, MarkerHLine)

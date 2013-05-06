@@ -32,6 +32,10 @@
 #include <QMouseEvent>
 #include <QColor>
 #include <QPoint>
+//TODO
+#include <qwt_interval.h>
+#include <qwt_point_3d.h>
+#include <qwt_compat.h> //Depricated qwt functions: QwtDoublePoint
 
 class PlotPicker : public QwtPlotPicker
 {
@@ -56,7 +60,6 @@ class PlotPicker : public QwtPlotPicker
     virtual QwtText trackerText (const QPoint &) const;
     virtual QwtText trackerText (const QwtDoublePoint &) const;
     virtual void widgetLeaveEvent (QEvent *);
-    virtual QwtPickerMachine * stateMachine (int) const;
 
   private:
     int _crossHairs;

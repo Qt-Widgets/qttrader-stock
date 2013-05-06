@@ -56,7 +56,7 @@ PlotInfo::setData (QStringList l)
 }
 
 void
-PlotInfo::draw (QPainter *p, const QwtScaleMap &, const QwtScaleMap &, const QRect &) const
+PlotInfo::draw (QPainter *p, const QwtScaleMap &, const QwtScaleMap &, const QRectF &) const
 {
   QFontMetrics fm = p->fontMetrics();
 

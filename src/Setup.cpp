@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -112,23 +113,28 @@ void Setup::scanPlugins ()
       qDebug() << "Setup::scanPlugins:" << loader.errorString();
       continue;
     }
-    
-    Plugin *plug = qobject_cast<Plugin *>(plugin);
-    if (! plug)
+
+    QtTraderPlugin *plug = qobject_cast<QtTraderPlugin *>(plugin);
+    if (plug)
     {
-      qDebug() << "Setup::scanPlugins:load: error casting Plugin";
-      continue;
+      qDebug() << "Setup::scanPlugins:load: Found QtTraderPlugin!";
+
+      if(dynamic_cast<IGUIPlugin*>(plug)){
+          QStringList l = h.value("gui");
+          l << name;
+          h.insert("gui", l);
+      }
+      if(dynamic_cast<IIndicatorPlugin*>(plug)){
+          QStringList l = h.value("indicator");
+          l << name;
+          h.insert("indicator", l);
+      }
+      if(dynamic_cast<IMarkerPlugin*>(plug)){
+          QStringList l = h.value("marker");
+          l << name;
+          h.insert("marker", l);
+      }
     }
-    
-    PluginData pd;
-    pd.command = QString("type");
-    
-    if (! plug->command(&pd))
-      continue;
-    
-    QStringList l = h.value(pd.type);
-    l << name;
-    h.insert(pd.type, l);
   }     
 
   settings.beginGroup("plugins");

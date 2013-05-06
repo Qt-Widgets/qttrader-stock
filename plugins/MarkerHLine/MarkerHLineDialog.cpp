@@ -20,7 +20,6 @@
  */
 
 #include "MarkerHLineDialog.h"
-#include "Doc.h"
 #include "Global.h"
 
 #include <QtDebug>
@@ -73,13 +72,6 @@ MarkerHLineDialog::done ()
   saveSettings();
   save();
   accept();
-}
-
-void
-MarkerHLineDialog::help ()
-{
-  Doc *doc = new Doc;
-  doc->showDocumentation(_helpFile);
 }
 
 void

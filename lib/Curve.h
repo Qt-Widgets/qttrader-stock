@@ -35,7 +35,7 @@ class Curve : public QwtPlotCurve
     Curve ();
     ~Curve ();
     void setPlugin (QString);
-    void draw (QPainter *, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRect &) const; //plugin
+    void draw (QPainter *, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &) const; //plugin
     int info (int, QStringList &); // plugin
     int scalePoint (int, QColor &, double &); // plugin
     int highLowRange (int start, int end, double &h, double &l); // plugin

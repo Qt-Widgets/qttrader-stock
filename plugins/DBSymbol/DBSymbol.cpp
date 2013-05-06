@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,56 +21,8 @@
  */
 
 #include <QtGui>
-
 #include "DBSymbol.h"
 #include "PluginFactory.h"
-
-int
-DBSymbol::command (PluginData *pd)
-{
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "init" << "getBars" << "setBars" << "search" << "transaction" << "commit";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("db");
-      rc = 1;
-      break;
-    case 1: // init
-      rc = init();
-      break;
-    case 2: // getBars
-      rc = getBars(pd);
-      break;
-    case 3: // setBars
-      rc = setBars(pd);
-      break;
-    case 4: // search
-      rc = search(pd);
-      break;
-    case 5: // transaction
-      _db.transaction();
-      rc = 1;
-      break;
-    case 6: // commit
-      _db.commit();
-      rc = 1;
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
-}
-
-int
-DBSymbol::draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *)
-{
-  return 0;
-}
 
 int
 DBSymbol::init ()
@@ -116,14 +69,11 @@ DBSymbol::init ()
   return 1;
 }
 
-int
-DBSymbol::getBars (PluginData *pd)
+int DBSymbol::getBars (Bars *bd)
 {
-  if (! pd->bars)
+  if (! bd)
     return 0;
-  
-  Bars *bd = pd->bars;
-  
+
   int length = bd->barLength();
   if (length == -1)
   {
@@ -134,28 +84,20 @@ DBSymbol::getBars (PluginData *pd)
   if (! getSymbol(bd))
     return 0;
 
-  PluginFactory fac;
-  Plugin *plug = fac.load(bd->plugin());
+  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(bd->plugin()));
   if (! plug)
   {
     qDebug() << "DBSymbol::getBars: invalid plugin" << bd->plugin();
     return 0;
   }
-
-  PluginData tpd;
-  tpd.command = QString("getBars");
-  tpd.bars = bd;
   
-  return plug->command(&tpd);
+  return plug->getBars(bd);
 }
 
-int
-DBSymbol::setBars (PluginData *pd)
+int DBSymbol::setBars (Bars *symbol)
 {
-  if (! pd->bars)
+  if (! symbol)
     return 0;
-  
-  Bars *symbol = pd->bars;
 
   if (! getSymbol(symbol))
   {
@@ -168,24 +110,18 @@ DBSymbol::setBars (PluginData *pd)
     if (! symbol->name().isEmpty())
       setName(symbol);
   }
-  
-  PluginFactory fac;
-  Plugin *plug = fac.load(symbol->plugin());
+
+  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(symbol->plugin()));
   if (! plug)
   {
     qDebug() << "DBSymbol::setBars: invalid plugin" << symbol->plugin();
     return 0;
   }
   
-  PluginData tpd;
-  tpd.command = QString("setBars");
-  tpd.bars = symbol;
-  
-  return plug->command(&tpd);
+  return plug->setBars(symbol);
 }
 
-int
-DBSymbol::newSymbol (Bars *symbol)
+int DBSymbol::newSymbol (Bars *symbol)
 {
   if (symbol->ticker().isEmpty() || symbol->exchange().isEmpty() || symbol->plugin().isEmpty())
   {
@@ -299,19 +235,14 @@ DBSymbol::newSymbol (Bars *symbol)
   }
 
   // create new table
-  PluginFactory fac;
-  Plugin *plug = fac.load(symbol->plugin());
+  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(symbol->plugin()));
   if (! plug)
   {
     qDebug() << "DBSymbol::newSymbol: invalid plugin" << symbol->plugin();
     return 0;
   }
   
-  PluginData pd;
-  pd.command = QString("newTable");
-  pd.bars = symbol;
-  
-  if (! plug->command(&pd))
+  if (! plug->newTable(symbol))
   {
     qDebug() << "DBSymbol::newSymbol: error creating table";
     return 0;
@@ -320,8 +251,7 @@ DBSymbol::newSymbol (Bars *symbol)
   return 1;
 }
 
-int
-DBSymbol::getSymbol (Bars *symbol)
+int DBSymbol::getSymbol (Bars *symbol)
 {
   QSqlQuery q(_db);
   QString s = "SELECT key,value FROM symbolIndex WHERE name='" + symbol->symbol() + "'";
@@ -363,8 +293,7 @@ DBSymbol::getSymbol (Bars *symbol)
   return rc;
 }
 
-int
-DBSymbol::deleteSymbol (Bars *bd)
+int DBSymbol::deleteSymbol (Bars *bd)
 {
   if (! getSymbol(bd))
   {
@@ -395,30 +324,28 @@ DBSymbol::deleteSymbol (Bars *bd)
   return 1;
 }
 
-int
-DBSymbol::search (PluginData *pd)
+QList<Bars> DBSymbol::search (QString search)
 {
+  QList<Bars> symbols;
   if (! init())
-    return 0;
-  
-  pd->symbols.clear();
+    return symbols;
 
   QSqlQuery q(_db);
 
   // first find matching names
   QString s = "SELECT DISTINCT name FROM symbolIndex";
 
-  if (pd->search.contains("%"))
-    s.append(" WHERE name LIKE '" + pd->search + "'");
+  if (search.contains("%"))
+    s.append(" WHERE name LIKE '" + search + "'");
   else
-    s.append(" WHERE name='" + pd->search + "'");
+    s.append(" WHERE name='" + search + "'");
 
   s.append(" ORDER BY name ASC");
   q.exec(s);
   if (q.lastError().isValid())
   {
     qDebug() << "DBSymbol::search:" + q.lastError().text();
-    return 0;
+    return symbols;
   }
 
   QStringList names;
@@ -435,14 +362,13 @@ DBSymbol::search (PluginData *pd)
     if (! getSymbol(&sym))
       continue;
     
-    pd->symbols << sym;
+    symbols << sym;
   }
 
-  return 1;
+  return symbols;
 }
 
-int
-DBSymbol::setName (Bars *symbol)
+int DBSymbol::setName (Bars *symbol)
 {
   QString name = symbol->name();
   if (name.isEmpty())
@@ -468,5 +394,19 @@ DBSymbol::setName (Bars *symbol)
 }
 
 
+void DBSymbol::transaction(){
+  _db.transaction();
+}
+
+void DBSymbol::commit(){
+  _db.commit();
+}
+
+Entity* DBSymbol::querySettings ()
+{
+  Entity *pEntity = new Entity;
+  return pEntity;
+}
+
 // do not remove
-Q_EXPORT_PLUGIN2(dbsymbol, DBSymbol);
+Q_EXPORT_PLUGIN2(dbsymbol, DBSymbol)

@@ -82,11 +82,9 @@ DateRange::interval (QDateTime ed, int type)
       break;
     case _YEAR:
       sd = ed.addYears(-1);
-//      sd = ed.addDays(-365);
       break;
     case _YEAR2:
       sd = ed.addYears(-2);
-//      sd = ed.addDays(-365*2);
       break;
     case _YEAR5:
       sd = ed.addYears(-5);

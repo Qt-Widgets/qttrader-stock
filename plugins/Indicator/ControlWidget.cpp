@@ -24,16 +24,6 @@
 #include "PluginFactory.h"
 #include "BarLength.h"
 #include "DateRange.h"
-#include "PluginData.h"
-
-#include "../../pics/prev.xpm"
-#include "../../pics/next.xpm"
-#include "../../pics/search.xpm"
-#include "../../pics/add.xpm"
-#include "../../pics/configure.xpm"
-#include "../../pics/delete.xpm"
-#include "../../pics/edit.xpm"
-#include "../../pics/group.xpm"
 
 #include <QtDebug>
 #include <QSettings>
@@ -46,7 +36,6 @@
 
 ControlWidget::ControlWidget ()
 {
-  _search = "%";
   createGUI();
   updateSymbols();
 }
@@ -92,39 +81,26 @@ void ControlWidget::createGUI ()
   
   // create actions for options menu
   QMenu *menu = new QMenu(this);
-
-  QAction *a = new QAction(QIcon(search_xpm), tr("Symbol &Search"), this);
-  a->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
-  a->setToolTip(tr("Symbol Search"));
-  a->setStatusTip(tr("Symbol Search"));
-  connect(a, SIGNAL(triggered()), this, SLOT(search()));
-  menu->addAction(a);
-
-  a = new QAction(QIcon(group_xpm), tr("&Group"), this);
-  a->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
-  a->setToolTip(tr("Group"));
-  a->setStatusTip(tr("Group"));
-  connect(a, SIGNAL(triggered()), this, SLOT(group()));
-  menu->addAction(a);
   
-  menu->addSeparator();
-
-  a = new QAction(QIcon(add_xpm), tr("&Add Indicator"), this);
+  QAction* a = new QAction(QIcon(":icons/add"), tr("&Add Indicator"), this);
   a->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_A));
+  a->setIconVisibleInMenu(true);
   a->setToolTip(tr("Add Indicator"));
   a->setStatusTip(tr("Add Indicator"));
   connect(a, SIGNAL(triggered()), this, SIGNAL(signalIndicator()));
   menu->addAction(a);
   
-  a = new QAction(QIcon(edit_xpm), tr("&Edit Indicator"), this);
+  a = new QAction(QIcon(":icons/edit"), tr("&Edit Indicator"), this);
   a->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+  a->setIconVisibleInMenu(true);
   a->setToolTip(tr("Edit Indicator"));
   a->setStatusTip(tr("Edit Indicator"));
   connect(a, SIGNAL(activated()), this, SIGNAL(signalEditPlot()));
   menu->addAction(a);
 
-  a = new QAction(QIcon(delete_xpm), tr("&Remove Indicator"), this);
+  a = new QAction(QIcon(":icons/delete"), tr("&Remove Indicator"), this);
   a->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_R));
+  a->setIconVisibleInMenu(true);
   a->setToolTip(tr("Remove Indicator"));
   a->setStatusTip(tr("Remove Indicator"));
   connect(a, SIGNAL(activated()), this, SIGNAL(signalRemovePlot()));
@@ -133,7 +109,7 @@ void ControlWidget::createGUI ()
   // options button
   _optionButton = new QToolButton;
   _optionButton->setPopupMode(QToolButton::InstantPopup);
-  _optionButton->setIcon(QIcon(configure_xpm));
+  _optionButton->setIcon(QIcon(":icons/config"));
   _optionButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
   _optionButton->setToolTip(tr("Options"));
   _optionButton->setStatusTip(tr("Options"));
@@ -143,7 +119,7 @@ void ControlWidget::createGUI ()
   
   // prev button
   _prevButton = new QToolButton;
-  _prevButton->setIcon(QIcon(prev_xpm));
+  _prevButton->setIcon(QIcon(":icons/back"));
   _prevButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
   _prevButton->setToolTip(tr("Previous Symbol"));
   _prevButton->setStatusTip(tr("Previous Symbol"));
@@ -153,7 +129,7 @@ void ControlWidget::createGUI ()
   
   // next button
   _nextButton = new QToolButton;
-  _nextButton->setIcon(QIcon(next_xpm));
+  _nextButton->setIcon(QIcon(":icons/forward"));
   _nextButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
   _nextButton->setToolTip(tr("Next Symbol"));
   _nextButton->setStatusTip(tr("Next Symbol"));
@@ -164,22 +140,16 @@ void ControlWidget::createGUI ()
 
 void ControlWidget::updateSymbols ()
 {
-  PluginFactory fac;
-  Plugin *plug = fac.load(QString("DBSymbol"));
+  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("DBSymbol")));
   if (! plug)
     return;
 
   _symbols.clear();
-  
-  PluginData pd;
-  pd.command = QString("search");
-  pd.search = _search;
-  
-  if (! plug->command(&pd))
-    return;
-  
-  _symbols = pd.symbols;
-  
+
+  QList<Bars> symbols = plug->search("%");
+
+  _symbols = symbols;
+
   QStringList tl;
   for (int pos = 0; pos < _symbols.size(); pos++)
   {
@@ -187,10 +157,10 @@ void ControlWidget::updateSymbols ()
     tl << sym.symbol();
   }
 
-  _list->blockSignals(TRUE);
+  _list->blockSignals(true);
   _list->clear();
   _list->addItems(tl);
-  _list->blockSignals(FALSE);
+  _list->blockSignals(false);
   
   buttonStatus();
 }
@@ -212,27 +182,27 @@ void ControlWidget::buttonStatus ()
   // update symbol navigation buttons
   if (_symbols.size() < 2)
   {
-    _prevButton->setEnabled(FALSE);
-    _nextButton->setEnabled(FALSE);
+    _prevButton->setEnabled(false);
+    _nextButton->setEnabled(false);
   }
   else
   {
     if (_list->currentIndex() == 0)
     {
-      _prevButton->setEnabled(FALSE);
-      _nextButton->setEnabled(TRUE);
+      _prevButton->setEnabled(false);
+      _nextButton->setEnabled(true);
     }
     else
     {
       if (_list->currentIndex() == _symbols.size() - 1)
       {
-        _prevButton->setEnabled(TRUE);
-        _nextButton->setEnabled(FALSE);
+        _prevButton->setEnabled(true);
+        _nextButton->setEnabled(false);
       }
       else
       {
-        _prevButton->setEnabled(TRUE);
-        _nextButton->setEnabled(TRUE);
+        _prevButton->setEnabled(true);
+        _nextButton->setEnabled(true);
       }
     }
   }
@@ -249,29 +219,6 @@ Bars ControlWidget::currentSymbol ()
     return Bars();
   
   return _symbols.at(_list->currentIndex());
-}
-
-void ControlWidget::search ()
-{
-  QStringList ml;
-  ml << QString("QtTrader -") << tr("Symbol Search");
-  
-  QInputDialog *dialog = new QInputDialog(this);
-  dialog->setWindowTitle(ml.join(" "));
-  dialog->setLabelText(tr("Enter a partial search like %OOG% or % for all"));
-  dialog->setTextValue(_search);
-  connect(dialog, SIGNAL(textValueSelected(const QString &)), this, SLOT(search2(QString)));
-  connect(dialog, SIGNAL(finished(int)), dialog, SLOT(deleteLater()));
-  dialog->show();
-}
-
-void ControlWidget::search2 (QString d)
-{
-  if (d.isEmpty())
-    return;
-  
-  _search = d;
-  updateSymbols();
 }
 
 int ControlWidget::length ()
@@ -317,102 +264,29 @@ void ControlWidget::setPan (int min, int max, int page)
     qDebug() << min;
     qDebug() << max;
     qDebug() << page;
-  _panScrollbar->setRange(min, max);
+  _panScrollbar->setRange(0, max);
   _panScrollbar->setPageStep(page);
   _panScrollbar->setValue(max);
 }
 
 void ControlWidget::setZoom (int min, int max, int page){
     qDebug() << "ControlWidget->setZoom";
-    qDebug() << min;
+  //  qDebug() << min;
     qDebug() << max;
     qDebug() << page;
-  _zoomScrollbar->setRange(min,max);
+  resizeZoom(max);
   _zoomScrollbar->setValue(max);
   _zoomScrollbar->setPageStep(page);
 }
 
 void ControlWidget::resizeZoom(int max){
-    _zoomScrollbar->setRange(0,max);
+    _zoomScrollbar->setRange(31,max);
 }
 
 void ControlWidget::listSelected ()
 {
   emit signalSelected();
   buttonStatus();
-}
-
-void ControlWidget::group ()
-{
-  QStringList l;
-  DataBase db(QString("groups"));
-  db.names(l);
-
-  QStringList ml;
-  ml << "QtTrader" << "-" << tr("Select Group");
-  
-  QInputDialog *dialog = new QInputDialog(this);
-  dialog->setWindowTitle(ml.join(" "));
-  dialog->setLabelText(tr("Group:"));
-  dialog->setComboBoxItems(l);
-  dialog->setComboBoxEditable(FALSE);
-  connect(dialog, SIGNAL(textValueSelected(const QString &)), this, SLOT(group2(QString)));
-  connect(dialog, SIGNAL(finished(int)), dialog, SLOT(deleteLater()));
-  dialog->show();
-}
-
-void ControlWidget::group2 (QString name)
-{
-  Entity e;
-  e.setName(name);
-  e.set(QString("list"), new QVariant(QStringList()));
-  
-  DataBase db(QString("groups"));
-  if (! db.get(&e))
-  {
-    qDebug() << "ControlWidget::group2: error loading group" << name;
-    return;
-  }
-
-  QVariant *set = e.get(QString("list"));
-  QStringList tl = set->toStringList();
-  
-  _symbols.clear();
-
-  PluginFactory fac;
-  Plugin *plug = fac.load(QString("DBSymbol"));
-  if (! plug)
-    return;
-  
-  for (int pos = 0; pos < tl.size(); pos++)
-  {
-    PluginData pd;
-    pd.command = QString("search");
-    pd.search = tl.at(pos);
-    
-    if (! plug->command(&pd))
-      continue;
-    
-    if (! pd.symbols.size())
-      continue;
-    
-    _symbols << pd.symbols.at(0);
-  }
-
-  _list->blockSignals(TRUE);
-  _list->clear();
-  _list->addItems(set->toStringList());
-  _list->blockSignals(FALSE);
-  
-  buttonStatus();
-}
-
-int ControlWidget::saveSettings (DataBase *db)
-{
-  Entity *e = settings();
-  int rc = db->set(e);
-  delete e;
-  return rc;
 }
 
 int ControlWidget::loadSettings (DataBase *db)
@@ -440,14 +314,18 @@ int ControlWidget::loadSettings (DataBase *db)
   tset = e->get(QString("length"));
   if (tset)
     _lengthButton->setLength(tset->toInt());
-  
-  tset = e->get(QString("search"));
-  if (tset)
-    _search = tset->toString();
-  
+
   delete e;
   
   return 1;
+}
+
+int ControlWidget::saveSettings (DataBase *db)
+{
+  Entity *e = settings();
+  int rc = db->set(e);
+  delete e;
+  return rc;
 }
 
 Entity* ControlWidget::settings ()
@@ -463,7 +341,6 @@ Entity* ControlWidget::settings ()
   qDebug() << "rangeScrollbar: " << _zoomScrollbar->value();
 
   e->set(QString("length"), new QVariant(_lengthButton->length()));
-  e->set(QString("search"), new QVariant(_search));
   return e;
 }
 

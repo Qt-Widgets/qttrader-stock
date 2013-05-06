@@ -29,7 +29,7 @@
 
 //This STEPS must be larger than STEPs in plot.cpp to avoid border
 //Issues when printing markers.
-#define STEPS 160
+#define STEPS 40
 
 PlotDateScaleDraw::PlotDateScaleDraw ()
 {

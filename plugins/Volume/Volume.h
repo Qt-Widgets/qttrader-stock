@@ -24,22 +24,23 @@
 #define PLUGIN_VOLUME_H
 
 #include <QObject>
+#include "QtTraderPlugin.h"
 
-#include "Plugin.h"
-
-class Volume : public QObject, public Plugin
+class Volume : public QObject, public IIndicatorPlugin
 {
   Q_OBJECT
-  Q_INTERFACES(Plugin)
+    Q_INTERFACES(IIndicatorPlugin)
+    Q_INTERFACES(QtTraderPlugin)
 
   public:
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
-    int command (PluginData *);    
-    Curve * getMA (Entity *settings);
-    int settings (PluginData *);
-    int dialog (PluginData *);
-    int run (PluginData *);
+
+    QString pluginName() { return QString("Volume");}
+    QString pluginVersion() { return QString("0.1");}
+    Entity* querySettings();
+    QDialog* dialog (QWidget *dialogParent, Entity* settings);
+    QList<Curve*> runIndicator (Entity* settings);
     int getMA (QString inKey, QString outKey, int type, int period);
+    Curve* getMA (Entity *settings);
 };
 
 #endif

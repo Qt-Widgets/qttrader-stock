@@ -26,55 +26,7 @@
 #include "BarLength.h"
 #include "BarType.h"
 
-int
-DBStock::command (PluginData *pd)
-{
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "init" << "getBars" << "setBars" << "newTable" << "transaction" << "commit";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("db");
-      rc = 1;
-      break;
-    case 1: // init
-      rc = init();
-      break;
-    case 2: // getBars
-      rc = getBars(pd);
-      break;
-    case 3: // setBars
-      rc = setBars(pd);
-      break;
-    case 4: // newTable
-      rc = newTable(pd);
-      break;
-    case 5: // transaction
-      _db.transaction();
-      rc = 1;
-      break;
-    case 6: // commit
-      _db.commit();
-      rc = 1;
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
-}
-
-int
-DBStock::draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *)
-{
-  return 0;
-}
-
-int
-DBStock::init ()
+int DBStock::init ()
 {
   _db = QSqlDatabase::database("quote");
   if (! _db.isOpen())
@@ -104,17 +56,11 @@ DBStock::init ()
   return 1;
 }
 
-int
-DBStock::getBars (PluginData *pd)
+int DBStock::getBars (Bars *bd)
 {
   if (! init())
     return 0;
-  
-  if (! pd->bars)
-    return 0;
-  
-  Bars *bd = pd->bars;
-  
+
   // get last date in db
   QDateTime endDate = getMaxDate(bd);
   if (! endDate.isValid())
@@ -201,16 +147,10 @@ DBStock::getBars (PluginData *pd)
   return 1;
 }
 
-int
-DBStock::setBars (PluginData *pd)
+int DBStock::setBars (Bars *symbol)
 {
   if (! init())
     return 0;
-
-  if (! pd->bars)
-    return 0;
-  
-  Bars *symbol = pd->bars;
 
   QSqlQuery q(_db);
 
@@ -307,16 +247,10 @@ DBStock::setBars (PluginData *pd)
   return 1;
 }
 
-int
-DBStock::newTable (PluginData *pd)
+int DBStock::newTable (Bars *symbol)
 {
   if (! init())
     return 0;
-
-  if (! pd->bars)
-    return 0;
-  
-  Bars *symbol = pd->bars;
 
   if (symbol->table().isEmpty())
   {
@@ -345,8 +279,7 @@ DBStock::newTable (PluginData *pd)
   return 1;
 }
 
-QDateTime
-DBStock::getMaxDate (Bars *symbol)
+QDateTime DBStock::getMaxDate (Bars *symbol)
 {
   QSqlQuery q(_db);
   
@@ -366,6 +299,24 @@ DBStock::getMaxDate (Bars *symbol)
   return dt;
 }
 
+void DBStock::transaction(){
+  _db.transaction();
+}
 
+void DBStock::commit(){
+  _db.commit();
+}
+
+QList<Bars> DBStock::search (QString )
+{
+  QList<Bars> retVal;
+  return retVal;
+}
+
+Entity* DBStock::querySettings ()
+{
+  Entity *pEntity = new Entity;
+  return pEntity;
+}
 // do not remove
-Q_EXPORT_PLUGIN2(dbstock, DBStock);
+Q_EXPORT_PLUGIN2(dbstock, DBStock)

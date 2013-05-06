@@ -24,7 +24,6 @@
 #include "Bar.h"
 #include "BarType.h"
 #include "PluginFactory.h"
-#include "PluginData.h"
 
 #include <QDebug>
 
@@ -52,8 +51,8 @@ Curve::init ()
   _pen = 1;
   _style = -1;
   _color = QColor(Qt::red);
-  setItemAttribute(QwtPlotItem::AutoScale, TRUE);
-  setItemAttribute(QwtPlotItem::Legend, TRUE);
+  setItemAttribute(QwtPlotItem::AutoScale, true);
+  setItemAttribute(QwtPlotItem::Legend, true);
 }
 
 void
@@ -65,11 +64,11 @@ Curve::setPlugin (QString plugin)
 }
 
 void
-Curve::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRect &rect) const
+Curve::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &rect) const
 {
   if (!_pluginString.isEmpty()){
-      PluginFactory fac;
-      Plugin *plug = fac.load(_pluginString);
+
+      ICurvePlugin *plug = dynamic_cast<ICurvePlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(_pluginString));
       if (! plug)
         return;
 
@@ -85,22 +84,10 @@ int
 Curve::info (int index, QStringList &l)
 {
   if (!_pluginString.isEmpty()){
-      PluginFactory fac;
-      Plugin *plug = fac.load(_pluginString);
+      ICurvePlugin *plug = dynamic_cast<ICurvePlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(_pluginString));
       if (! plug)
         return 0;
-
-      PluginData pd;
-      pd.command = QString("info");
-      pd.index = index;
-      pd.data = (void *) this;
-
-      int rc = plug->command(&pd);
-      if (rc)
-      {
-        for (int pos = 0; pos < pd.info.size(); pos++)
-          l << pd.info.at(pos);
-      }
+      int rc = plug->info(this, l, index);
 
       return rc;
   }
@@ -112,23 +99,11 @@ int
 Curve::scalePoint (int i, QColor &color, double &v)
 {
   if (!_pluginString.isEmpty()){
-      PluginFactory fac;
-      Plugin *plug = fac.load(_pluginString);
+      ICurvePlugin *plug = dynamic_cast<ICurvePlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(_pluginString));
       if (! plug)
         return 0;
 
-      PluginData pd;
-      pd.command = QString("scalePoint");
-      pd.index = i;
-      pd.data = (void *) this;
-
-      int rc = plug->command(&pd);
-      if (rc)
-      {
-        color = pd.color;
-        v = pd.value;
-      }
-
+      int rc = plug->scalePoint(this, color, v, i);
       return rc;
   }
   return 0;
@@ -138,24 +113,10 @@ int
 Curve::highLowRange (int start, int end, double &h, double &l)
 {
   if (!_pluginString.isEmpty()){
-      PluginFactory fac;
-      Plugin *plug = fac.load(_pluginString);
+      ICurvePlugin *plug = dynamic_cast<ICurvePlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(_pluginString));
       if (! plug)
         return 0;
-
-      PluginData pd;
-      pd.command = QString("highLowRange");
-      pd.start = start;
-      pd.end = end;
-      pd.data = (void *) this;
-
-      int rc = plug->command(&pd);
-      if (rc)
-      {
-        h = pd.high;
-        l = pd.low;
-      }
-
+      int rc = plug->highLow(this, h,l,start,end);
       return rc;
     }
 
@@ -166,21 +127,10 @@ int
 Curve::fill (QString k1, QString k2, QString k3, QString k4, QColor color)
 {
   if (!_pluginString.isEmpty()){
-      PluginFactory fac;
-      Plugin *plug = fac.load(_pluginString);
+      ICurvePlugin *plug = dynamic_cast<ICurvePlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(_pluginString));
       if (! plug)
         return 0;
-
-      PluginData pd;
-      pd.command = QString("fill");
-      pd.key1 = k1;
-      pd.key2 = k2;
-      pd.key3 = k3;
-      pd.key4 = k4;
-      pd.color = color;
-      pd.data = (void *) this;
-
-      return plug->command(&pd);
+      return plug->fill(this, k1, k2, k3, k4, color);
   }
   return 0;
 }

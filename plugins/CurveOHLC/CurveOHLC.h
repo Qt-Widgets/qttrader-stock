@@ -25,21 +25,24 @@
 
 #include <QObject>
 
-#include "Plugin.h"
+#include "QtTraderPlugin.h"
 
-class CurveOHLC : public QObject, public Plugin
+class CurveOHLC : public QObject, public ICurvePlugin
 {
   Q_OBJECT
-  Q_INTERFACES(Plugin)
+    Q_INTERFACES(ICurvePlugin)
+    Q_INTERFACES(QtTraderPlugin)
 
   public:
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
-    int command (PluginData *);    
-    
-    int info (PluginData *);
-    int scalePoint (PluginData *);
-    int highLowRange (PluginData *);
-    int fill (PluginData *);
+
+    QString pluginName() { return QString("Curve OHLC");}
+    QString pluginVersion() { return QString("0.1");}
+
+    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRectF &, void *);
+    int info (Curve *curve, QStringList &info, int index);
+    int scalePoint (Curve *curve, QColor &color, double &value, int index);
+    int highLow (Curve *curve, double &high, double &low, int start, int end);
+    int fill (Curve *curve, QString key1, QString key2, QString key3, QString key4, QColor color);
 };
 
 #endif

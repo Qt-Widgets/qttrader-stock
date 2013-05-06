@@ -58,7 +58,7 @@ CBar::get (QString k, double &d)
 int
 CBar::highLow (double &h, double &l)
 {
-  bool flag = FALSE;
+  bool flag = false;
   QHashIterator<QString, double> it(_values);
   while (it.hasNext())
   {
@@ -68,7 +68,7 @@ CBar::highLow (double &h, double &l)
     {
       h = it.value();
       l = it.value();
-      flag = TRUE;
+      flag = true;
     }
     else
     {

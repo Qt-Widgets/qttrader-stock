@@ -33,7 +33,7 @@ class CDL : public QObject, public Plugin
   Q_INTERFACES(Plugin)
 
   public:
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
+    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRectF &, void *);
     int command (PluginData *);    
     int settings (PluginData *);
     int dialog (PluginData *);

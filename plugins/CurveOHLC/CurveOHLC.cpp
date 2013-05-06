@@ -31,40 +31,7 @@
 
 
 int
-CurveOHLC::command (PluginData *pd)
-{
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "info" << "scalePoint" << "highLowRange" << "fill";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("curve");
-      rc = 1;
-      break;
-    case 1: // info
-      rc = info(pd);
-      break;
-    case 2: // scalePoint
-      rc = scalePoint(pd);
-      break;
-    case 3: // highLowRange
-      rc = highLowRange(pd);
-      break;
-    case 4: // fill
-      rc = fill(pd);
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
-}
-
-int
-CurveOHLC::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRect &, void *c)
+CurveOHLC::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &, void *c)
 {
   Curve *curve = (Curve *) c;
   QwtScaleDiv *sd = curve->plot()->axisScaleDiv(QwtPlot::xBottom);
@@ -76,7 +43,7 @@ CurveOHLC::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
 
   int loop = sd->lowerBound();
   int size = sd->upperBound();
-  bool ff = FALSE;
+  bool ff = false;
   
   for (; loop < size; loop++)
   {
@@ -113,9 +80,9 @@ CurveOHLC::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
         painter->drawRect(rect);
 
         /*
-        ff = FALSE;
+        ff = false;
         if (b->close() < b->open())
-          ff = TRUE;
+          ff = true;
 
         if (! ff)
         {
@@ -142,65 +109,58 @@ CurveOHLC::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
   return 1;
 }
 
-int
-CurveOHLC::info (PluginData *pd)
+int CurveOHLC::info (Curve *curve, QStringList &info, int index)
 {
-  if (! pd->data)
+  if (! curve)
     return 0;
   
-  Curve *curve = (Curve *) pd->data;
-  
-  OHLCBar *bar = (OHLCBar *) curve->bar(pd->index);
+  OHLCBar *bar = (OHLCBar *) curve->bar(index);
   if (! bar)
     return 0;
 
   Strip strip;
   QString d;
   strip.strip(bar->open(), 4, d);
-  pd->info << "O=" + d;
+  info << "O=" + d;
 
   strip.strip(bar->high(), 4, d);
-  pd->info << "H=" + d;
+  info << "H=" + d;
 
   strip.strip(bar->low(), 4, d);
-  pd->info << "L=" + d;
+  info << "L=" + d;
 
   strip.strip(bar->close(), 4, d);
-  pd->info << "C=" + d;
+  info << "C=" + d;
 
-  pd->info << "Index= " + QString::number(pd->index);
+  info << "Index= " + QString::number(index);
 
   return 1;
 }
 
 int
-CurveOHLC::scalePoint (PluginData *pd)
+CurveOHLC::scalePoint (Curve *curve, QColor &color, double &value, int index)
 {
-  if (! pd->data)
+  if (!curve)
     return 0;
-  
-  Curve *curve = (Curve *) pd->data;
-  
-  OHLCBar *bar = (OHLCBar *) curve->bar(pd->index - 1); // -1 fix for alignment issue
+
+  OHLCBar *bar = (OHLCBar *) curve->bar(index - 1); // -1 fix for alignment issue
   if (! bar)
     return 0;
 
-  pd->color = bar->color();
-  pd->value = bar->close();
+  color = bar->color();
+  value = bar->close();
 
   return 1;
 }
 
 int
-CurveOHLC::highLowRange (PluginData *pd)
+CurveOHLC::highLow(Curve *curve, double &high, double &low, int start, int end)
 {
-  if (! pd->data)
+  if (! curve)
     return 0;
   
-  Curve *curve = (Curve *) pd->data;
-  
   int flag = 0;
-  for (int pos = pd->start; pos <= pd->end; pos++)
+  for (int pos = start; pos <= end; pos++)
   {
     OHLCBar *r = (OHLCBar *) curve->bar(pos);
     if (! r)
@@ -208,17 +168,17 @@ CurveOHLC::highLowRange (PluginData *pd)
 
     if (! flag)
     {
-      pd->high = r->high();
-      pd->low = r->low();
+      high = r->high();
+      low = r->low();
       flag++;
     }
     else
     {
-      if (r->high() > pd->high)
-        pd->high = r->high();
+      if (r->high() > high)
+        high = r->high();
       
-      if (r->low() < pd->low)
-        pd->low = r->low();
+      if (r->low() < low)
+        low = r->low();
     }
   }
 
@@ -226,9 +186,9 @@ CurveOHLC::highLowRange (PluginData *pd)
 }
 
 int
-CurveOHLC::fill (PluginData *pd)
+CurveOHLC::fill (Curve *curve, QString key1, QString key2, QString key3, QString key4, QColor color)
 {
-  if (pd->key1.isEmpty() || pd->key2.isEmpty() || pd->key3.isEmpty() || pd->key4.isEmpty())
+  if (key1.isEmpty() || key2.isEmpty() || key3.isEmpty() || key4.isEmpty())
     return 0;
   
   if (! g_symbol)
@@ -236,11 +196,6 @@ CurveOHLC::fill (PluginData *pd)
     qDebug() << "CurveOHLC::fill: bars missing";
     return 0;
   }
-
-  if (! pd->data)
-    return 0;
-  
-  Curve *curve = (Curve *) pd->data;
   
   QList<int> keys = g_symbol->keys();
   
@@ -249,27 +204,26 @@ CurveOHLC::fill (PluginData *pd)
     CBar *r = g_symbol->bar(keys.at(pos));
     
     double o = 0;
-    if (! r->get(pd->key1, o))
+    if (! r->get(key1, o))
       continue;
 
     double h = 0;
-    if (! r->get(pd->key2, h))
+    if (! r->get(key2, h))
       continue;
 
     double l = 0;
-    if (! r->get(pd->key3, l))
+    if (! r->get(key3, l))
       continue;
 
     double c = 0;
-    if (! r->get(pd->key4, c))
+    if (! r->get(key4, c))
       continue;
     
-    curve->setBar(keys.at(pos), new OHLCBar(pd->color, o, h, l, c));
+    curve->setBar(keys.at(pos), new OHLCBar(color, o, h, l, c));
   }
 
   return 1;
 }
 
-
 // do not remove
-Q_EXPORT_PLUGIN2(curveohlc, CurveOHLC);
+Q_EXPORT_PLUGIN2(curveohlc, CurveOHLC)

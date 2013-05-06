@@ -41,7 +41,6 @@ class Dialog : public QDialog
   public slots:
     virtual void done ();
     virtual void cancel ();
-    virtual void help ();
     virtual void loadSettings ();
     virtual void saveSettings ();
     void setWidget (QWidget *);
@@ -52,8 +51,6 @@ class Dialog : public QDialog
     QFormLayout *_form;
     QPushButton *_okButton;
     QPushButton *_cancelButton;
-    QPushButton *_helpButton;
-    QString _helpFile;
     QLabel *_message;
     QString _keySize;
     QString _keyPos;

@@ -34,9 +34,10 @@
 class Marker : public QwtPlotItem
 {
   public:
+
     Marker (QString);
     ~Marker ();
-    virtual void draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &) const;  // via plugin
+    virtual void draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRectF &) const;  // via plugin
     int info (QStringList &); // via plugin
     int highLow (int start, int end, double &high, double &low); // via plugin
     int move (int &status, QPoint); // via plugin

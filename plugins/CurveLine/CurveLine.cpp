@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,42 +30,8 @@
 #include "CurveLineType.h"
 #include "Global.h"
 
-
 int
-CurveLine::command (PluginData *pd)
-{
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "info" << "scalePoint" << "highLowRange" << "fill";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("curve");
-      rc = 1;
-      break;
-    case 1: // info
-      rc = info(pd);
-      break;
-    case 2: // scalePoint
-      rc = scalePoint(pd);
-      break;
-    case 3: // highLowRange
-      rc = highLowRange(pd);
-      break;
-    case 4: // fill
-      rc = fill(pd);
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
-}
-
-int
-CurveLine::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRect &, void *c)
+CurveLine::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &, void *c)
 {
   Curve *curve = (Curve *) c;
   QwtScaleDiv *sd = curve->plot()->axisScaleDiv(QwtPlot::xBottom);
@@ -77,7 +44,7 @@ CurveLine::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
   int loop = sd->lowerBound();
   int size = sd->upperBound();
 
-//  painter->setRenderHint(QPainter::Antialiasing, TRUE);
+//  painter->setRenderHint(QPainter::Antialiasing, true);
 
   QPen tpen = painter->pen();
   tpen.setWidth(curve->pen());
@@ -144,54 +111,43 @@ CurveLine::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
   return 1;
 }
 
-int
-CurveLine::info (PluginData *pd)
+int CurveLine::info (Curve *curve, QStringList &info, int index)
 {
-  if (! pd->data)
-    return 0;
-  
-  Curve *curve = (Curve *) pd->data;
-  
-  CLBar *bar = (CLBar *) curve->bar(pd->index);
+  CLBar *bar = (CLBar *) curve->bar(index);
   if (! bar)
     return 0;
 
   Strip strip;
   QString d;
   strip.strip(bar->value(), 4, d);
-  pd->info << curve->label() + "=" + d;
+  info << curve->label() + "=" + d;
 
   return 1;
 }
 
 int
-CurveLine::scalePoint (PluginData *pd)
+CurveLine::scalePoint (Curve *curve, QColor &color, double &value, int index)
 {
-  if (! pd->data)
+  if (! curve)
     return 0;
   
-  Curve *curve = (Curve *) pd->data;
-  
-  CLBar *bar = (CLBar *) curve->bar(pd->index);
+  CLBar *bar = (CLBar *) curve->bar(index);
   if (! bar)
     return 0;
   
-  pd->value = bar->value();
-  pd->color = curve->color();
+  value = bar->value();
+  color = curve->color();
 
   return 1;
 }
 
-int
-CurveLine::highLowRange (PluginData *pd)
+int CurveLine::highLow (Curve *curve, double &high, double &low, int start, int end)
 {
-  if (! pd->data)
+  if (!curve)
     return 0;
-  
-  Curve *curve = (Curve *) pd->data;
-  
+
   int flag = 0;
-  for (int pos = pd->start; pos <= pd->end; pos++)
+  for (int pos = start; pos <= end; pos++)
   {
     CLBar *r = (CLBar *) curve->bar(pos);
     if (! r)
@@ -199,27 +155,25 @@ CurveLine::highLowRange (PluginData *pd)
 
     if (! flag)
     {
-      pd->high = r->value();
-      pd->low = r->value();
+      high = r->value();
+      low = r->value();
       flag++;
     }
     else
     {
-      if (r->value() > pd->high)
-        pd->high = r->value();
+      if (r->value() > high)
+        high = r->value();
       
-      if (r->value() < pd->low)
-        pd->low = r->value();
+      if (r->value() < low)
+        low = r->value();
     }
   }
-
   return flag;
 }
 
-int
-CurveLine::fill (PluginData *pd)
+int CurveLine::fill (Curve *curve, QString key,QString,QString,QString,QColor)
 {
-  if (pd->key1.isEmpty())
+    if (!curve || key.isEmpty())
     return 0;
   
   if (! g_symbol)
@@ -227,11 +181,6 @@ CurveLine::fill (PluginData *pd)
     qDebug() << "CurveLine::fill: bars missing";
     return 0;
   }
-
-  if (! pd->data)
-    return 0;
-  
-  Curve *curve = (Curve *) pd->data;
   
   QList<int> keys = g_symbol->keys();
   
@@ -242,7 +191,7 @@ CurveLine::fill (PluginData *pd)
 //qDebug() << "CurveLine::fill:" << k1 << QString::number(pos);
     
     double v = 0;
-    if (! r->get(pd->key1, v))
+    if (! r->get(key, v))
       continue;
 
     curve->setBar(keys.at(pos), new CLBar(v));
@@ -251,6 +200,5 @@ CurveLine::fill (PluginData *pd)
   return 1;
 }
 
-
 // do not remove
-Q_EXPORT_PLUGIN2(curveline, CurveLine);
+Q_EXPORT_PLUGIN2(curveline, CurveLine)

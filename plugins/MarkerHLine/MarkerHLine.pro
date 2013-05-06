@@ -1,7 +1,7 @@
 TEMPLATE = lib
 CONFIG += plugin
 INCLUDEPATH += ../../lib
-LIBS += -L../../lib -lQTTRADER -lta_common -lta_func -lta_abstract
+LIBS += -L../../lib -lQTTRADER -lta_lib
 MOC_DIR += build
 OBJECTS_DIR += build
 

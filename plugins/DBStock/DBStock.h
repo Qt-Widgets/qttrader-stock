@@ -26,22 +26,32 @@
 #include <QObject>
 #include <QtSql>
 #include <QStringList>
+#include "QtTraderPlugin.h"
 
-#include "Plugin.h"
 
-class DBStock : public QObject, Plugin
+class DBStock : public QObject, IDBPlugin
 {
   Q_OBJECT
-  Q_INTERFACES(Plugin)
+    Q_INTERFACES(IDBPlugin)
+    Q_INTERFACES(QtTraderPlugin)
 
   public:
-    int command (PluginData *);    
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
-    
+
+    QString pluginName() { return QString("DB Stock");}
+    QString pluginVersion() { return QString("0.1");}
+    Entity* querySettings();
     int init ();
-    int setBars (PluginData *);
-    int getBars (PluginData *);
-    int newTable (PluginData *);
+    int setBars (Bars *symbol);
+    int getBars (Bars *symbol);
+    int newTable (Bars *symbol);
+    QList<Bars> search (QString );
+    int newSymbol (Bars *) { return 0; }
+    int getSymbol (Bars *) { return 0; }
+    int deleteSymbol (Bars *){ return 0; }
+    int setName (Bars *) { return 0; }
+    void transaction();
+    void commit();
+
     QDateTime getMaxDate (Bars *);
 
   private:

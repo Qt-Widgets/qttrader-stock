@@ -27,7 +27,6 @@
 #define PLOT_SCALE_DRAW_HPP
 
 #include <qwt_scale_draw.h>
-//#include <qwt_scale_widget.h>
 #include <QList>
 #include <QColor>
 #include <QPainter>

@@ -20,7 +20,7 @@
  */
 
 #include "VolumeDialog.h"
-#include "Doc.h"
+
 #include "Global.h"
 #include "MAType.h"
 #include "CurveLineType.h"
@@ -35,7 +35,6 @@ VolumeDialog::VolumeDialog (QWidget *p) : QDialog (p)
 {
   _settings = 0;
   _modified = 0;
-  _helpFile = "main.html";
   connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
 
   // main vbox
@@ -60,13 +59,9 @@ VolumeDialog::VolumeDialog (QWidget *p) : QDialog (p)
   // cancel button
   _cancelButton = _buttonBox->addButton(QDialogButtonBox::Cancel);
   _cancelButton->setText(tr("&Cancel"));
-  _cancelButton->setDefault(TRUE);
+  _cancelButton->setDefault(true);
   _cancelButton->setFocus();
 
-  // help button
-  QPushButton *b = _buttonBox->button(QDialogButtonBox::Help);
-  b->setText(tr("&Help"));
-  connect(b, SIGNAL(clicked()), this, SLOT(help()));
 }
 
 void VolumeDialog::done ()
@@ -74,12 +69,6 @@ void VolumeDialog::done ()
   saveSettings();
   save();
   accept();
-}
-
-void VolumeDialog::help ()
-{
-  Doc *doc = new Doc;
-  doc->showDocumentation(_helpFile);
 }
 
 void VolumeDialog::cancel ()

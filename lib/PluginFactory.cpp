@@ -1,37 +1,31 @@
 /*
  *  QtTrader stock charter
  *
- *  Copyright (C) 2001-2010 Stefan S. Stratigakos
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
- *  USA.
+ *  Copyright (C) 2013 Mattias Johansson
  */
 
 #include "PluginFactory.h"
-
 #include <QDir>
 #include <QtDebug>
 #include <QPluginLoader>
 #include "qttrader_defines.h"
 
+
+void* PluginFactory::m_pPluginFactory = 0;
+
 PluginFactory::PluginFactory ()
 {
 }
 
-Plugin *
-PluginFactory::load (QString d)
+void* PluginFactory::getPluginFactory ()
+{
+    if(!m_pPluginFactory){
+        m_pPluginFactory = new PluginFactory();
+    }
+    return m_pPluginFactory;
+}
+
+QObject* PluginFactory::loadPluginFromString (QString d)
 {
 
 #ifdef DEBUG
@@ -50,16 +44,31 @@ PluginFactory::load (QString d)
 #endif
 
   QPluginLoader pluginLoader(s);
-  QObject *tp = pluginLoader.instance();
-  if (! tp)
+  QObject *pObject = pluginLoader.instance();
+  if (! pObject)
   {
-      qDebug() << "PluginFactory::load:" << pluginLoader.errorString() << " : " << s;
+      qDebug() << "PluginFactory::loadPluginFromString:" << pluginLoader.errorString() << " : " << s;
     return 0;
   }
+  return pObject;
+}
 
-  Plugin *plugin = qobject_cast<Plugin *>(tp);
-  if (! plugin)
-    qDebug() << "PluginFactory::load: error casting Plugin";
-
-  return plugin;
+QtTraderPlugin* PluginFactory::loadPlugin(QString d)
+{
+  QtTraderPlugin* pQtTraderPlugin = 0;
+//  if(mLoadedPlugins.contains(d))
+//  {
+//      pQtTraderPlugin = mLoadedPlugins.value(d);
+//  }
+//  else
+  {
+      QObject* pObject = loadPluginFromString(d);
+      pQtTraderPlugin = qobject_cast<QtTraderPlugin *>(pObject);
+      if (!pQtTraderPlugin){
+        qDebug() << "PluginFactory::loadPlugin: error casting Plugin : " <<d;
+        Q_ASSERT(pQtTraderPlugin);
+      }
+      mLoadedPlugins.insert(d,pQtTraderPlugin);
+  }
+  return pQtTraderPlugin;
 }

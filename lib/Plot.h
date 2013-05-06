@@ -107,7 +107,6 @@ class Plot : public QwtPlot
     void markerDialog ();
     void markerDialog2 ();
     void deleteMarker ();
-    void deleteMarker2 ();
     void markerMenuSelected (QAction *);
     void deleteAllMarkersDialog ();
     void deleteAllMarkers ();

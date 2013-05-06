@@ -64,7 +64,7 @@ int
 Bar::highLow (double &, double &)
 {
 /*  
-  bool flag = FALSE;
+  bool flag = false;
   QHashIterator<QString, double> it(_values);
   while (it.hasNext())
   {
@@ -74,7 +74,7 @@ Bar::highLow (double &, double &)
     {
       h = it.value();
       l = it.value();
-      flag = TRUE;
+      flag = true;
     }
     else
     {

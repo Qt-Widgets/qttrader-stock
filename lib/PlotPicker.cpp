@@ -19,15 +19,16 @@
  *  USA.
  */
 
+#include <qwt_interval.h>
+#include <qwt_point_3d.h>
 #include "PlotPicker.h"
-#include "PickerMachine.h"
 
 #include <QString>
 #include <QDebug>
 
-PlotPicker::PlotPicker (QwtPlot *p) : QwtPlotPicker (QwtPlot::xBottom, QwtPlot::yLeft,
-                                                     QwtPicker::PointSelection | QwtPicker::DragSelection,
-                                                     QwtPlotPicker::RectRubberBand,
+
+PlotPicker::PlotPicker (QwtPlot *p) : QwtPlotPicker (1, 1,
+                                                     QwtPicker::RectRubberBand,
                                                      QwtPicker::AlwaysOn,
                                                      p->canvas())
 {
@@ -75,7 +76,6 @@ void PlotPicker::widgetMouseMoveEvent (QMouseEvent *event)
 {
   if (! isActive())
   {
-    setSelectionFlags(QwtPicker::PointSelection);
     begin();
     append(event->pos());
   }
@@ -111,8 +111,4 @@ void PlotPicker::widgetLeaveEvent(QEvent *)
   end();
 }
 
-QwtPickerMachine *PlotPicker::stateMachine (int) const
-{
-  return new PickerMachine;
-}
 

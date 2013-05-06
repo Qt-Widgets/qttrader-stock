@@ -219,6 +219,8 @@ QDateTime Bars::date (int x){
   Bar *pBar = bar(x);
   if (!pBar){
     pBar = bar(bars()-1);
+    if(!pBar)
+        return QDateTime::currentDateTime();
     QDateTime lastDate= pBar->date();
     QDateTime datum = lastDate.addDays(x-bars()+1);
     date = datum;

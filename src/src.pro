@@ -25,13 +25,12 @@ message("Using QMAKE_RPATHDIR=$$QMAKE_RPATHDIR")
 
 QMAKE_CXXFLAGS += -rdynamic -ffast-math
 
-INCLUDEPATH += /usr/local/qwt-5.2.2/include
+#INCLUDEPATH += /usr/local/qwt-5.2.2/include
 INCLUDEPATH += /usr/local/include/ta-lib 
 INCLUDEPATH += ../lib
 
-LIBS += -L/usr/lib
-LIBS += -L../lib -lQTTRADER
-LIBS += -L/usr/local/qwt-5.2.2/lib -lqwt
+LIBS += -L../lib -L/usr/lib -lQTTRADER -lqwt
+#LIBS += -L/usr/local/qwt-5.2.2/lib -lqwt
 
 TARGET = qttrader
 
@@ -48,6 +47,9 @@ QT += core
 QT += gui
 QT += sql
 QT += network
+
+RESOURCES += \
+    ../icons.qrc
 
 !exists(./build){
   system(echo $(mkdir) build)
