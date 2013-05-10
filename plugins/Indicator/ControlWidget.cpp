@@ -22,7 +22,7 @@
 
 #include "ControlWidget.h"
 #include "PluginFactory.h"
-#include "BarLength.h"
+#include "bar/BarLength.h"
 #include "DateRange.h"
 
 #include <QtDebug>
@@ -140,7 +140,7 @@ void ControlWidget::createGUI ()
 
 void ControlWidget::updateSymbols ()
 {
-  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("DBSymbol")));
+  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("Database")));
   if (! plug)
     return;
 

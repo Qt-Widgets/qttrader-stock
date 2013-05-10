@@ -100,8 +100,9 @@ QtTrader::createGUI ()
   QToolBar* toolbar = new QToolBar();
   for(int i = 0; i<value.size(); i++){
       toolbar->addAction(value.at(i), this, SLOT(pluginLoader()));
-      toolbar->show();
   }
+  toolbar->show();
+  toolbar->setObjectName("MainToolbar");
 
   addToolBar(toolbar);
   setUnifiedTitleAndToolBarOnMac(true);

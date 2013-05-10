@@ -37,7 +37,7 @@ Marker::Marker (QString plugin)
   setYAxis(QwtPlot::yRight);
   _modified = false;
   _settings = 0;
-  _ro = false;
+  mReadOnly = false;
   
   if (! plugin.isEmpty())
   {
@@ -56,8 +56,7 @@ Marker::~Marker ()
     delete _settings;
 }
 
-void
-Marker::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &rect) const
+void Marker::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &rect) const
 {
 //  qDebug() <<"Marker::draw";
   IMarkerPlugin *plug = dynamic_cast<IMarkerPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(_pluginString));
@@ -66,14 +65,12 @@ Marker::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMa
   plug->draw(painter, xMap, yMap, rect, (void *) this);
 }
 
-int
-Marker::rtti () const
+int Marker::rtti () const
 {
   return Rtti_PlotUserItem;
 }
 
-int
-Marker::isSelected (QPoint p)
+int Marker::isSelected (QPoint p)
 {
   int loop;
   for (loop = 0; loop < (int) _selectionArea.count(); loop++)
@@ -86,8 +83,7 @@ Marker::isSelected (QPoint p)
   return 0;
 }
 
-void
-Marker::clearSelectionArea ()
+void Marker::clearSelectionArea ()
 {
   _selectionArea.clear();
 }
@@ -98,8 +94,7 @@ Marker::appendSelectionArea (QRegion r)
   _selectionArea.append(r);
 }
 
-int
-Marker::isGrabSelected (QPoint p)
+int Marker::isGrabSelected (QPoint p)
 {
   int loop;
   for (loop = 0; loop < (int) _grabHandles.count(); loop++)
@@ -112,94 +107,37 @@ Marker::isGrabSelected (QPoint p)
   return 0;
 }
 
-void
-Marker::clearGrabHandles ()
+void Marker::clearGrabHandles ()
 {
   _grabHandles.clear();
 }
 
-void
-Marker::appendGrabHandle (QRegion r)
+void Marker::appendGrabHandle (QRegion r)
 {
   _grabHandles.append(r);
 }
 
-void
-Marker::setSelected (bool d)
-{
-  _selected = d;
-}
-
-bool
-Marker::selected ()
-{
-  return _selected;
-}
-
-void
-Marker::setSettings (Entity *d)
-{
+void Marker::setSettings (Entity *d) {
   if (_settings)
     delete _settings;
   _settings = d;
 }
 
-Entity *
-Marker::settings ()
-{
+Entity* Marker::settings () {
   return _settings;
 }
 
-void
-Marker::setModified (bool d)
-{
-  _modified = d;
-}
-
-bool
-Marker::modified ()
-{
-  return _modified;
-}
-
-void
-Marker::setReadOnly (bool d)
-{
-  _ro = d;
-}
-
-bool
-Marker::readOnly ()
-{
-  return _ro;
-}
-
-void
-Marker::setID (QString d)
-{
-  _id = d;
-}
-
-QString
-Marker::ID ()
-{
-  return _id;
-}
-
-QString
-Marker::plugin ()
+QString Marker::plugin ()
 {
   return _pluginString;
 }
 
-int
-Marker::handleWidth ()
+int Marker::handleWidth ()
 {
   return _handleWidth;
 }
 
-int
-Marker::info (QStringList &l)
+int Marker::info (QStringList &l)
 {
   IMarkerPlugin *plug = dynamic_cast<IMarkerPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(_pluginString));
   if (! plug)

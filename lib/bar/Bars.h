@@ -38,8 +38,6 @@ class Bars
     Bars ();
     ~Bars ();
     void clear ();
-    void setPlugin (QString);
-    QString plugin ();
     void setTable (QString);
     QString table ();
     void setSymbolType (QString);
@@ -101,7 +99,6 @@ class Bars
     QDateTime week (int x);
 
   private:
-    QString _plugin;
     QString _table;
     QString _symbolType;
     QString _ticker;

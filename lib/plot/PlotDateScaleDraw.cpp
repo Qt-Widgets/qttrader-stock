@@ -20,7 +20,7 @@
  */
 
 #include "PlotDateScaleDraw.h"
-#include "BarLength.h"
+#include "../bar/BarLength.h"
 #include "DateRange.h"
 #include "Global.h"
 

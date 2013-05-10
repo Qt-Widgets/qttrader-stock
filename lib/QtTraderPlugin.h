@@ -14,9 +14,9 @@
 #include <QDialog>
 #include "Entity.h"
 #include "Marker.h"
-#include "Bars.h"
+#include "bar/Bars.h"
 #include "Widget.h"
-#include "Curve.h"
+#include "curve/Curve.h"
 
 class QtTraderPlugin {
 

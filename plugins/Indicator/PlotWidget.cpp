@@ -24,7 +24,7 @@
 #include "PluginFactory.h"
 #include "IndicatorDialog.h"
 #include "Global.h"
-#include "BarType.h"
+#include "bar/BarType.h"
 #include <qwt_plot_zoomer.h>
 #include <qwt_plot_magnifier.h>
 
@@ -576,7 +576,7 @@ bool PlotWidget::loadSymbolData() {
     if (! _controlWidget->count())
       return false;
 
-    IDBPlugin *qplug = dynamic_cast<IDBPlugin *>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("DBSymbol")));
+    IDBPlugin *qplug = dynamic_cast<IDBPlugin *>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("Database")));
 
     if (! qplug)
       return false;

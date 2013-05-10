@@ -27,7 +27,7 @@
 #include <QSplitter>
 #include <QHash>
 
-#include "Plot.h"
+#include "plot/Plot.h"
 #include "Widget.h"
 #include "ControlWidget.h"
 #include "DataBase.h"

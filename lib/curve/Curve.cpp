@@ -20,9 +20,8 @@
  */
 
 #include "Curve.h"
-#include "Strip.h"
-#include "Bar.h"
-#include "BarType.h"
+#include "../bar/Bar.h"
+#include "../bar/BarType.h"
 #include "PluginFactory.h"
 
 #include <QDebug>

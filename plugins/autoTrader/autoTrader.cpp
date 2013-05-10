@@ -10,9 +10,9 @@
 #include "autoTrader.h"
 #include "ta_libc.h"
 #include "MAType.h"
-#include "BarType.h"
-#include "CurveLineType.h"
-#include "CurveOHLCType.h"
+#include "bar/BarType.h"
+#include "curve/CurveLineType.h"
+#include "curve/CurveOHLCType.h"
 #include "Global.h"
 #include "autoTraderDialog.h"
 

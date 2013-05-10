@@ -22,10 +22,9 @@
 
 #include "MarkerHLineDialog.h"
 #include "MarkerHLine.h"
-#include "Strip.h"
 #include "Marker.h"
-#include "Plot.h"
-#include "PlotStatus.h"
+#include "plot/Plot.h"
+#include "plot/PlotStatus.h"
 
 #include <QtGui>
 
@@ -54,9 +53,7 @@ int MarkerHLine::draw (QPainter *p, const QwtScaleMap &, const QwtScaleMap &yMap
   int y = yMap.transform(price->toDouble());
 
   // test start
-  Strip strip;
-  QString ts;
-  strip.strip(price->toDouble(), 4, ts);
+  QString ts = QString::number(price->toDouble(), 'f', 2);
   QString s = " " + ts; // prepend space so we can clearly read text
   QFontMetrics fm = p->fontMetrics();
   QRect rc = p->boundingRect(0, y - (fm.height() / 2), 1, 1, 0, s);
@@ -114,10 +111,7 @@ int MarkerHLine::info (Entity *pEntity, QStringList &info)
   if (! price)
     return 0;
 
-  Strip strip;
-  QString ts;
-  strip.strip(price->toDouble(), 4, ts);
-  
+  QString  ts = QString::number(price->toDouble(), 'f', 2);
   info << QString("HLine=") + ts;
   
   return 1;

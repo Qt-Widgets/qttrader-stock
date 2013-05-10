@@ -25,12 +25,12 @@
 #ifndef CLBAR_HPP
 #define CLBAR_HPP
 
-#include "Bar.h"
+#include "bar/Bar.h"
 
-class CLBar : public Bar
+class CurveLineBar : public Bar
 {
   public:
-    CLBar (double);
+    CurveLineBar (double);
     double value ();
     
   private:

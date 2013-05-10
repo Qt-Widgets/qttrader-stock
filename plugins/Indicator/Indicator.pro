@@ -18,8 +18,6 @@ HEADERS += LengthButton.h
 SOURCES += LengthButton.cpp
 HEADERS += PlotWidget.h
 SOURCES += PlotWidget.cpp
-HEADERS +=
-SOURCES +=
 
 target.path = "$${INSTALL_PLUGIN_DIR}"
 INSTALLS += target

@@ -22,11 +22,10 @@
 
 #include "MarkerBuyDialog.h"
 #include "MarkerBuy.h"
-#include "Strip.h"
 #include "Marker.h"
-#include "Plot.h"
-#include "PlotStatus.h"
-#include "PlotDateScaleDraw.h"
+#include "plot/Plot.h"
+#include "plot/PlotStatus.h"
+#include "plot/PlotDateScaleDraw.h"
 #include "Global.h"
 
 #include <QtGui>
@@ -118,10 +117,8 @@ int MarkerBuy::info (Entity *pEntity, QStringList &info)
   QDateTime dt = date->toDateTime();
   info << "D=" + dt.toString("yyyy-MM-dd");
   info << "T=" + dt.toString("HH:mm:ss");
-  
-  Strip strip;
-  QString ts;
-  strip.strip(price->toDouble(), 4, ts);
+
+  QString ts = QString::number(price->toDouble(), 'f', 2);
   info << QString("Buy=") + ts;
   
   return 1;

@@ -35,13 +35,13 @@
 #include <qwt_plot.h>
 
 #include "Entity.h"
-#include "Curve.h"
+#include "../curve/Curve.h"
 #include "PlotDateScaleDraw.h"
 #include "PlotScaleDraw.h"
 #include "PlotPicker.h"
 #include "PlotInfo.h"
 #include "PlotSettings.h"
-#include "Bars.h"
+#include "../bar/Bars.h"
 
 class Plot : public QwtPlot
 {

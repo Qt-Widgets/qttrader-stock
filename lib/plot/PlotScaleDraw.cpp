@@ -20,7 +20,6 @@
  */
 
 #include "PlotScaleDraw.h"
-#include "Strip.h"
 
 #include <QString>
 #include <QDebug>
@@ -33,8 +32,6 @@ PlotScaleDraw::PlotScaleDraw ()
 //Convert the scale from double to QwtText
 QwtText PlotScaleDraw::label (double v) const
 {
-  Strip strip;
-
   double tv = v;
 
   int flag = 0;
@@ -46,7 +43,7 @@ QwtText PlotScaleDraw::label (double v) const
 
   QString s;
   if (tv < 1000)
-    strip.strip(tv, 4, s);
+   s = QString::number(tv, 'f', 2);
   else
   {
     if (tv >= 1000 && tv < 1000000)
@@ -93,7 +90,6 @@ void PlotScaleDraw::draw (QPainter *p, const QPalette &pal) const
   // now we overwrite with our own color version
   QFontMetrics fm = p->fontMetrics();
 
-  Strip strip;
   int offset = 8;
   int loop = 0;
   int x = 0;
@@ -102,8 +98,7 @@ void PlotScaleDraw::draw (QPainter *p, const QPalette &pal) const
     QColor color = _colors.at(loop);
 
     double v = _values.at(loop);
-    QString s;
-    strip.strip(v, 4, s);
+    QString s = QString::number(v, 'f', 2);
     int y = scaleMap().transform(v);
     QRect rc = p->boundingRect(x + offset,
                                y - (fm.height() / 2),
@@ -142,7 +137,6 @@ void PlotScaleDraw::drawPoints (QwtScaleWidget *w)
   // now we overwrite with our own color version
   QFontMetrics fm = p.fontMetrics();
 
-  Strip strip;
   int offset = 8;
   int loop = 0;
   int x = 0;
@@ -151,8 +145,7 @@ void PlotScaleDraw::drawPoints (QwtScaleWidget *w)
     QColor color = _colors.at(loop);
 
     double v = _values.at(loop);
-    QString s;
-    strip.strip(v, 2, s);
+    QString s = QString::number(v, 'f', 2);
 
     int y = map().transform(v);
 

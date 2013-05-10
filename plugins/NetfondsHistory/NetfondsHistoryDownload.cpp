@@ -22,8 +22,8 @@
 
 #include "NetfondsHistoryDownload.h"
 #include "PluginFactory.h"
-#include "Bars.h"
-#include "BarType.h"
+#include "bar/Bars.h"
+#include "bar/BarType.h"
 
 #include <QDebug>
 #include <QFile>
@@ -238,11 +238,11 @@ void NetfondsHistoryDownload::parseHistory (QByteArray &ba, QString &symbol, QSt
     sym.setBar(sym.bars(), bar);
   }
 
-  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("DBSymbol")));
+  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("Database")));
   if (! plug)
   {
     QStringList mess;
-    mess << tr("Error, DBSymbol plugin missing");
+    mess << tr("Error, Database plugin missing");
     emit signalMessage(mess.join(" "));
     return;
   }

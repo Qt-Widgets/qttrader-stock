@@ -24,9 +24,8 @@
 
 #include "CurveOHLC.h"
 #include "OHLCBar.h"
-#include "Strip.h"
-#include "Curve.h"
-#include "CurveOHLCType.h"
+#include "curve/Curve.h"
+#include "curve/CurveOHLCType.h"
 #include "Global.h"
 
 
@@ -118,18 +117,19 @@ int CurveOHLC::info (Curve *curve, QStringList &info, int index)
   if (! bar)
     return 0;
 
-  Strip strip;
-  QString d;
-  strip.strip(bar->open(), 4, d);
+  QString d = QString::number(bar->open(), 'f', 2);
   info << "O=" + d;
 
-  strip.strip(bar->high(), 4, d);
+
+  d = QString::number(bar->high(), 'f', 2);
   info << "H=" + d;
 
-  strip.strip(bar->low(), 4, d);
+
+  d = QString::number(bar->low(), 'f', 2);
   info << "L=" + d;
 
-  strip.strip(bar->close(), 4, d);
+
+  d = QString::number(bar->close(), 'f', 2);
   info << "C=" + d;
 
   info << "Index= " + QString::number(index);

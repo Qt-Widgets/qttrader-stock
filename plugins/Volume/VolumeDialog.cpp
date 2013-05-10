@@ -23,7 +23,7 @@
 
 #include "Global.h"
 #include "MAType.h"
-#include "CurveLineType.h"
+#include "curve/CurveLineType.h"
 
 #include <QtDebug>
 #include <QSettings>

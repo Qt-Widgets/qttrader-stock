@@ -19,27 +19,17 @@
  *  USA.
  */
 
-#include "Strip.h"
+#include "CurveLineBar.h"
 
 #include <QtDebug>
 
-Strip::Strip ()
+CurveLineBar::CurveLineBar (double v)
 {
+  _value = v;
 }
 
-void Strip::strip (double d, int p, QString &s)
+double
+CurveLineBar::value ()
 {
-  QString ts = QString::number(d, 'f', p);
-  while (ts.endsWith("0"))
-    ts.chop(1);
-  while (ts.endsWith("."))
-    ts.chop(1);
-  s = ts;
+  return _value;
 }
-
-void Strip::verifyText (QString &d)
-{
-  // remove any forbidden sql characters
-  d = d.remove(QString("'"), Qt::CaseSensitive);
-}
-

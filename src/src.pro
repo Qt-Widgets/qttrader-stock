@@ -28,6 +28,9 @@ QMAKE_CXXFLAGS += -rdynamic -ffast-math
 #INCLUDEPATH += /usr/local/qwt-5.2.2/include
 INCLUDEPATH += /usr/local/include/ta-lib 
 INCLUDEPATH += ../lib
+INCLUDEPATH += ../lib/bar
+INCLUDEPATH += ../lib/curve
+INCLUDEPATH += ../lib/plot
 
 LIBS += -L../lib -L/usr/lib -lQTTRADER -lqwt
 #LIBS += -L/usr/local/qwt-5.2.2/lib -lqwt

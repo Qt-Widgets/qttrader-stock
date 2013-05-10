@@ -21,7 +21,7 @@
  */
 
 #include "Plot.h"
-#include "BarLength.h"
+#include "../bar/BarLength.h"
 #include "PluginFactory.h"
 #include "PlotStatus.h"
 #include "Global.h"

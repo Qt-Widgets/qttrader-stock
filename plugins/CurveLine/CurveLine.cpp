@@ -24,10 +24,9 @@
 #include <QtGui>
 
 #include "CurveLine.h"
-#include "CLBar.h"
-#include "Strip.h"
-#include "Curve.h"
-#include "CurveLineType.h"
+#include "CurveLineBar.h"
+#include "curve/Curve.h"
+#include "curve/CurveLineType.h"
 #include "Global.h"
 
 int
@@ -74,11 +73,11 @@ CurveLine::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
     {
       for (; loop < size; loop++)
       {
-        CLBar *yb = (CLBar *) curve->bar(loop - 1);
+        CurveLineBar *yb = (CurveLineBar *) curve->bar(loop - 1);
         if (! yb)
           continue;
 
-        CLBar *b = (CLBar *) curve->bar(loop);
+        CurveLineBar *b = (CurveLineBar *) curve->bar(loop);
         if (! b)
           continue;
 
@@ -95,7 +94,7 @@ CurveLine::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
     {
       for (; loop < size; loop++)
       {
-        CLBar *b = (CLBar *) curve->bar(loop);
+        CurveLineBar *b = (CurveLineBar *) curve->bar(loop);
         if (! b)
           continue;
 
@@ -113,13 +112,11 @@ CurveLine::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
 
 int CurveLine::info (Curve *curve, QStringList &info, int index)
 {
-  CLBar *bar = (CLBar *) curve->bar(index);
+  CurveLineBar *bar = (CurveLineBar *) curve->bar(index);
   if (! bar)
     return 0;
 
-  Strip strip;
-  QString d;
-  strip.strip(bar->value(), 4, d);
+  QString d = QString::number(bar->value(), 'f', 2);
   info << curve->label() + "=" + d;
 
   return 1;
@@ -131,7 +128,7 @@ CurveLine::scalePoint (Curve *curve, QColor &color, double &value, int index)
   if (! curve)
     return 0;
   
-  CLBar *bar = (CLBar *) curve->bar(index);
+  CurveLineBar *bar = (CurveLineBar *) curve->bar(index);
   if (! bar)
     return 0;
   
@@ -149,7 +146,7 @@ int CurveLine::highLow (Curve *curve, double &high, double &low, int start, int 
   int flag = 0;
   for (int pos = start; pos <= end; pos++)
   {
-    CLBar *r = (CLBar *) curve->bar(pos);
+    CurveLineBar *r = (CurveLineBar *) curve->bar(pos);
     if (! r)
       continue;
 
@@ -194,7 +191,7 @@ int CurveLine::fill (Curve *curve, QString key,QString,QString,QString,QColor)
     if (! r->get(key, v))
       continue;
 
-    curve->setBar(keys.at(pos), new CLBar(v));
+    curve->setBar(keys.at(pos), new CurveLineBar(v));
   }
 
   return 1;

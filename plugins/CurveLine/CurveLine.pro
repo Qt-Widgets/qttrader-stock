@@ -7,8 +7,8 @@ OBJECTS_DIR += build
 
 HEADERS += CurveLine.h
 SOURCES += CurveLine.cpp
-HEADERS += CLBar.h
-SOURCES += CLBar.cpp
+HEADERS += CurveLineBar.h
+SOURCES += CurveLineBar.cpp
 
 target.path = "$${INSTALL_PLUGIN_DIR}"
 INSTALLS += target

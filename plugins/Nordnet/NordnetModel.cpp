@@ -14,8 +14,8 @@
 #include "stock.h"
 #include "index.h"
 #include "pricetick.h"
-#include "Bars.h"
-#include "BarType.h"
+#include "bar/Bars.h"
+#include "bar/BarType.h"
 
 #include <QDebug>
 #include <QString>
@@ -354,7 +354,7 @@ void NordnetModel::tickToBars()
 //        sym.setBar(y,pBar);
     }
 
-    IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("DBSymbol")));
+    IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("Database")));
     if (! plug)
     {
       return;

@@ -2,7 +2,6 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
- *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,21 +19,35 @@
  *  USA.
  */
 
-#ifndef PLUGIN_HPP
-#define PLUGIN_HPP
+#ifndef PLOT_SETTINGS_HPP
+#define PLOT_SETTINGS_HPP
 
-#include <QPainter>
-#include <qwt_plot.h>
+#include <QColor>
+#include <QHash>
+#include <QList>
+#include <QString>
 
-#include "PluginData.h"
+#include "Marker.h"
+#include "curve/Curve.h"
 
-struct Plugin
+typedef struct
 {
-    virtual ~Plugin () {}
-    virtual int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *) = 0;
-    virtual int command (PluginData *) = 0;
-};
+  QColor colorBackground;
+  int barLength;
+  QHash<QString, Marker* > markers;
+  QHash<QString, Curve* > curves;
+  QString name;
+  Marker* selected;
+  bool antiAlias;
+  int spacing;
+  double high;
+  double low;
+  int startPos;
+  int endPos;
+  int status;
+  bool info;
+  
+} PlotSettings;
 
-Q_DECLARE_INTERFACE(Plugin, "com.QtTrader.Plugin/1.0")
 
 #endif

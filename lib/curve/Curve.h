@@ -24,9 +24,7 @@
 
 #include <qwt_plot_curve.h>
 #include <QMap>
-
-//#include "Plugin.h"
-#include "Bar.h"
+#include "../bar/Bar.h"
 
 class Curve : public QwtPlotCurve
 {

@@ -32,7 +32,6 @@ Bars::Bars ()
   _range = DateRange::_YEAR;
   _exchange = "NONE";
   _symbolType = "Stock";
-  _plugin = "DBStock";
 }
 
 Bars::~Bars ()
@@ -45,18 +44,6 @@ Bars::clear ()
 {
   qDeleteAll(_bars);
   _bars.clear();
-}
-
-void
-Bars::setPlugin (QString d)
-{
-  _plugin = d;
-}
-
-QString
-Bars::plugin ()
-{
-  return _plugin;
 }
 
 void

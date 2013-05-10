@@ -5,8 +5,8 @@ LIBS += -L../../lib -lQTTRADER -lta_lib
 MOC_DIR += build
 OBJECTS_DIR += build
 
-HEADERS += DBStock.h
-SOURCES += DBStock.cpp
+HEADERS += Database.h
+SOURCES += Database.cpp
 
 target.path = "$${INSTALL_PLUGIN_DIR}"
 INSTALLS += target

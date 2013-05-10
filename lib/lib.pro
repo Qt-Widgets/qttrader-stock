@@ -2,27 +2,29 @@
 # SOURCE
 #####################################################
 
-HEADERS += Bar.h \
-    QtTraderPlugin.h
-SOURCES += Bar.cpp
-HEADERS += Bars.h
-SOURCES += Bars.cpp
-HEADERS += BarLength.h
-SOURCES += BarLength.cpp
-HEADERS += BarType.h
-SOURCES += BarType.cpp
-HEADERS += CBar.h
-SOURCES += CBar.cpp
+HEADERS += bar/Bar.h
+SOURCES += bar/Bar.cpp
+HEADERS += bar/Bars.h
+SOURCES += bar/Bars.cpp
+HEADERS += bar/BarLength.h
+SOURCES += bar/BarLength.cpp
+HEADERS += bar/BarType.h
+SOURCES += bar/BarType.cpp
+HEADERS += bar/CBar.h
+SOURCES += bar/CBar.cpp
+
+HEADERS += QtTraderPlugin.h
+
 HEADERS += ColorButton.h
 SOURCES += ColorButton.cpp
-HEADERS += Curve.h
-SOURCES += Curve.cpp
-HEADERS += CurveHistogramType.h
-SOURCES += CurveHistogramType.cpp
-HEADERS += CurveLineType.h
-SOURCES += CurveLineType.cpp
-HEADERS += CurveOHLCType.h
-SOURCES += CurveOHLCType.cpp
+HEADERS += curve/Curve.h
+SOURCES += curve/Curve.cpp
+HEADERS += curve/CurveHistogramType.h
+SOURCES += curve/CurveHistogramType.cpp
+HEADERS += curve/CurveLineType.h
+SOURCES += curve/CurveLineType.cpp
+HEADERS += curve/CurveOHLCType.h
+SOURCES += curve/CurveOHLCType.cpp
 HEADERS += DataBase.h
 SOURCES += DataBase.cpp
 HEADERS += DateRange.h
@@ -37,24 +39,20 @@ HEADERS += MAType.h
 SOURCES += MAType.cpp
 HEADERS += Marker.h
 SOURCES += Marker.cpp
-HEADERS += Plot.h
-SOURCES += Plot.cpp
-HEADERS += PlotDateScaleDraw.h
-SOURCES += PlotDateScaleDraw.cpp
-HEADERS += PlotInfo.h
-SOURCES += PlotInfo.cpp
-HEADERS += PlotPicker.h
-SOURCES += PlotPicker.cpp
-HEADERS += PlotScaleDraw.h
-SOURCES += PlotScaleDraw.cpp
-HEADERS += PlotSettings.h
-HEADERS += PlotStatus.h
-HEADERS +=
-HEADERS +=
+HEADERS += plot/Plot.h
+SOURCES += plot/Plot.cpp
+HEADERS += plot/PlotDateScaleDraw.h
+SOURCES += plot/PlotDateScaleDraw.cpp
+HEADERS += plot/PlotInfo.h
+SOURCES += plot/PlotInfo.cpp
+HEADERS += plot/PlotPicker.h
+SOURCES += plot/PlotPicker.cpp
+HEADERS += plot/PlotScaleDraw.h
+SOURCES += plot/PlotScaleDraw.cpp
+HEADERS += plot/PlotSettings.h
+HEADERS += plot/PlotStatus.h
 HEADERS += PluginFactory.h
 SOURCES += PluginFactory.cpp
-HEADERS += Strip.h
-SOURCES += Strip.cpp
 HEADERS += Widget.h
 SOURCES += Widget.cpp
 
@@ -76,7 +74,11 @@ TARGET = QTTRADER
 
 VERSION = 0.1.0
 
+
 INCLUDEPATH += /usr/local/include/ta-lib
+INCLUDEPATH += ./bar
+INCLUDEPATH += ./plot
+INCLUDEPATH += ./curve
 #INCLUDEPATH += /usr/local/qwt-5.2.2/include
 
 LIBS += -L/usr/lib

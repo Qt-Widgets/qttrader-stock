@@ -22,11 +22,10 @@
 
 #include "MarkerTLineDialog.h"
 #include "MarkerTLine.h"
-#include "Strip.h"
 #include "Marker.h"
-#include "Plot.h"
-#include "PlotStatus.h"
-#include "PlotDateScaleDraw.h"
+#include "plot/Plot.h"
+#include "plot/PlotStatus.h"
+#include "plot/PlotDateScaleDraw.h"
 #include "Global.h"
 
 #include <QtGui>
@@ -166,12 +165,10 @@ int MarkerTLine::info (Entity *pEntity, QStringList &info)
   info<< tr("End Date") + "=" + dt.toString("yyyy-MM-dd");
   info<< tr("End Time") + "=" + dt.toString("HH:mm:ss");
 
-  Strip strip;
-  QString ts;
-  strip.strip(price->toDouble(), 4, ts);
+  QString ts = QString::number(price->toDouble(), 'f', 2);
   info<< tr("Start Price") + "=" + ts;
 
-  strip.strip(price2->toDouble(), 4, ts);
+  ts = QString::number(price2->toDouble(), 'f', 2);
   info<< tr("End Price") + "=" + ts;
   
   return 1;

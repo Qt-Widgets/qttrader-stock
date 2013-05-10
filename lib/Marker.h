@@ -51,18 +51,23 @@ class Marker : public QwtPlotItem
     int isGrabSelected (QPoint);
     void clearGrabHandles ();
     void appendGrabHandle (QRegion);
-    void setSelected (bool);
-    bool selected ();
-    void setModified (bool);
-    bool modified ();
+
+
     Entity * settings ();
     void setSettings (Entity *);
     int handleWidth ();
-    void setReadOnly (bool);
-    bool readOnly ();
-    void setID (QString);
-    QString ID ();
     QString plugin ();
+
+    //Getters and Setters
+    void setSelected(bool selected) { _selected = selected; }
+    bool selected() { return _selected; }
+    void setModified(bool modified) { _modified = modified; }
+    bool modified() { return _modified; }
+    void setReadOnly (bool readOnly) { mReadOnly = readOnly; }
+    bool readOnly() { return mReadOnly; }
+    void setID(QString id) { _id = id; }
+    QString ID() { return _id; }
+
 
   protected:
     Entity *_settings;
@@ -71,7 +76,7 @@ class Marker : public QwtPlotItem
     bool _selected;
     int _handleWidth;
     bool _modified;
-    bool _ro;
+    bool mReadOnly;
     QString _id;
     QString _pluginString;
 };

@@ -22,10 +22,10 @@
 #include "autoTraderDialog.h"
 
 #include "Global.h"
-#include "CurveOHLCType.h"
-#include "BarType.h"
+#include "curve/CurveOHLCType.h"
+#include "bar/BarType.h"
 #include "MAType.h"
-#include "CurveLineType.h"
+#include "curve/CurveLineType.h"
 
 #include <QtDebug>
 #include <QSettings>

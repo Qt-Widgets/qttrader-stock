@@ -20,7 +20,7 @@
  */
 
 #include "LengthButton.h"
-#include "BarLength.h"
+#include "bar/BarLength.h"
 
 #include <QtDebug>
 #include <QMenu>

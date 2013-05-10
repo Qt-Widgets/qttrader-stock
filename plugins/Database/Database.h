@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,36 +20,43 @@
  *  USA.
  */
 
-#ifndef FILE_BUTTON_HPP
-#define FILE_BUTTON_HPP
 
-#include <QPushButton>
+#ifndef PLUGIN_DATABASE_H
+#define PLUGIN_DATABASE_H
+
+#include <QObject>
+#include <QtSql>
 #include <QStringList>
+#include "bar/Bars.h"
+#include "QtTraderPlugin.h"
 
-class FileButton : public QPushButton
+class Database : public QObject, IDBPlugin
 {
   Q_OBJECT
-
-  signals:
-    void signalSelectionChanged (QStringList);
+    Q_INTERFACES(IDBPlugin)
+    Q_INTERFACES(QtTraderPlugin)
 
   public:
-    FileButton (QWidget *);
-    QStringList files ();
-    void updateButtonText ();
-    void setPath (QString);
-    int fileCount ();
-    void setTextFlag (bool);
-    void setFiles (QStringList);
 
-  public slots:
-    void fileDialog ();
-    void fileDialog2 (QStringList);
-        
+    QString pluginName() { return QString("Database");}
+    QString pluginVersion() { return QString("0.1");}
+    Entity* querySettings();
+    int init ();
+    int setBars (Bars *);
+    int getBars (Bars *);
+    int newTable(Bars *) { return 0;}
+    QList<Bars> search (QString search);
+    int newSymbol (Bars *);
+    int getSymbol (Bars *);
+    int deleteSymbol (Bars *);
+    int setName (Bars *);
+    void transaction();
+    void commit();
+
+    QDateTime getMaxDate (Bars *);
+
   private:
-    QStringList _files;
-    QString _path;
-    bool _textFlag;
+    QSqlDatabase _db;
 };
 
 #endif

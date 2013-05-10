@@ -31,9 +31,9 @@
 #include <QSettings>
 #include <QComboBox>
 
-#include "Bars.h"
+#include "bar/Bars.h"
 #include "LengthButton.h"
-#include "Plot.h"
+#include "plot/Plot.h"
 #include "DataBase.h"
 
 class ControlWidget : public QWidget

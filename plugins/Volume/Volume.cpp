@@ -23,9 +23,9 @@
 
 #include "Volume.h"
 #include "MAType.h"
-#include "BarType.h"
-#include "CurveLineType.h"
-#include "CurveHistogramType.h"
+#include "bar/BarType.h"
+#include "curve/CurveLineType.h"
+#include "curve/CurveHistogramType.h"
 #include "Global.h"
 #include "ta_libc.h"
 #include "VolumeDialog.h"

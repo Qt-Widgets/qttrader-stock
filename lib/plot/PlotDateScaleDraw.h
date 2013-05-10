@@ -20,37 +20,35 @@
  */
 
 // *************************************************************************************************
-// Custom pushbutton that displays a selected font on the button and when pushed, displays the
-// font dialog. Used by PrefDialog
+// Plots the date area of a chart
 // *************************************************************************************************
 
-#ifndef FONT_BUTTON_HPP
-#define FONT_BUTTON_HPP
+#ifndef PLOT_DATE_SCALE_DRAW_HPP
+#define PLOT_DATE_SCALE_DRAW_HPP
 
-#include <QWidget>
-#include <QPushButton>
-#include <QFont>
+#include <QHash>
+#include <QDateTime>
+#include <qwt_scale_draw.h>
 
-class FontButton : public QPushButton
+#include "../bar/Bars.h"
+
+
+class PlotDateScaleDraw : public QwtScaleDraw
 {
-  Q_OBJECT
-
-  signals:
-    void valueChanged();
-
   public:
-    FontButton (QWidget *, QFont);
-    QFont & font ();
-    void setFontButton ();
-    int isChanged();
-    
-  public slots:
-    void fontDialog ();
-    void fontDialog2 (QFont);
-      
+    PlotDateScaleDraw ();
+    void clear ();
+    void setDates ();
+    virtual QwtText label (double) const;
+    void info (int index, QStringList &);
+    virtual void draw (QPainter *, const QPalette &) const;
+    int startEndRange (int &start, int &end);
+    int dateToX (QDateTime);
+
   private:
-    QFont _font;
-    int _changed;
+    int getPlotEndValue() const;
+    QHash<QString, int> _dates;
+
 };
 
 #endif
