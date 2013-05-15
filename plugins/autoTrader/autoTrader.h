@@ -24,6 +24,8 @@ class autoTrader : public QObject, public IIndicatorPlugin
     Entity* querySettings();
     QDialog* dialog (QWidget *dialogParent, Entity* settings);
     QList<Curve*> runIndicator(Entity* settings);
+public slots:
+    void newDataLoaded();
     
   private:
     Curve * getMA (Entity *settings, int num);

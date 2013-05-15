@@ -68,7 +68,6 @@ QList<Curve *> autoTrader::runIndicator (Entity *settings)
     curves << ma;
   }
 
-  findMACrossings(curves);
   return curves;
 }
 
@@ -315,6 +314,13 @@ Entity* autoTrader::querySettings ()
   pEntity->set(QString("ma3Label"), new QVariant(QString("MA3")));
 
   return pEntity;
+}
+
+
+void autoTrader::newDataLoaded()
+{
+  QList<Curve*> curves = runIndicator(querySettings());
+  findMACrossings(curves);
 }
 
 // do not remove

@@ -205,7 +205,7 @@ void PlotWidget::refresh ()
 
   DataBase db(g_session);
 
-  loadSymbolData();
+  bool newData = loadSymbolData();
 
   //Save all markers before clearing the plot
   saveMarkers(db);
@@ -230,12 +230,15 @@ void PlotWidget::refresh ()
     QVariant *plugin = pEntity->get(QString("plugin"));
     if (! plugin)
       continue;
-    
+
     IIndicatorPlugin *pPlugin = dynamic_cast<IIndicatorPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(plugin->toString()));
     if (! pPlugin)
       continue;
 
     QList<Curve*> curves = pPlugin->runIndicator(pEntity);
+    if(newData){
+      pPlugin->newDataLoaded();
+    }
 
     for (int tpos = 0; tpos < curves.size(); tpos++)
       plot->setCurve(curves.at(tpos));

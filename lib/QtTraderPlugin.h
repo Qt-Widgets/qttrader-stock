@@ -63,6 +63,8 @@ public:
 //    virtual int draw (QPainter*, const QwtScaleMap&, const QwtScaleMap&, const QRect&, void*) = 0;
     virtual QDialog* dialog (QWidget *dialogParent, Entity* settings) = 0;
     virtual QList<Curve*> runIndicator (Entity* settings) = 0;
+public slots:
+    virtual void newDataLoaded() = 0;
 };
 
 class IGUIPlugin : public QtTraderPlugin {
