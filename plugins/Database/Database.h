@@ -50,8 +50,6 @@ class Database : public QObject, IDBPlugin
     int getSymbol (Bars *);
     int deleteSymbol (Bars *);
     int setName (Bars *);
-    void transaction();
-    void commit();
 
     QDateTime getMaxDate (Bars *);
 

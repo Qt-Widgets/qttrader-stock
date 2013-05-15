@@ -194,6 +194,8 @@ int Database::setBars (Bars *symbol)
   if (! init())
     return 0;
 
+  _db.transaction();
+
   QSqlQuery q(_db);
 
   QList<int> keys = symbol->keys();
@@ -285,7 +287,7 @@ int Database::setBars (Bars *symbol)
       continue;
     }
   }
-
+  _db.commit();
   return 1;
 }
 
@@ -587,14 +589,6 @@ QDateTime Database::getMaxDate (Bars *symbol)
     dt = QDateTime::fromString(q.value(0).toString(), "yyyyMMddHHmmss");
 
   return dt;
-}
-
-void Database::transaction(){
-  _db.transaction();
-}
-
-void Database::commit(){
-  _db.commit();
 }
 
 Entity* Database::querySettings ()

@@ -41,6 +41,8 @@ class Volume : public QObject, public IIndicatorPlugin
     QList<Curve*> runIndicator (Entity* settings);
     int getMA (QString inKey, QString outKey, int type, int period);
     Curve* getMA (Entity *settings);
+public slots:
+    void newDataLoaded() {}
 };
 
 #endif

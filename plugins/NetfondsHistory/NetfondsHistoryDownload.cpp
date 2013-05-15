@@ -250,12 +250,8 @@ void NetfondsHistoryDownload::parseHistory (QByteArray &ba, QString &symbol, QSt
   if (! plug->init())
     return;
 
-  plug->transaction();
-
   if (! plug->setBars(&sym))
     return;
-
-  plug->commit();
 }
 
 

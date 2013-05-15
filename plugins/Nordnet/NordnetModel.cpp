@@ -363,12 +363,8 @@ void NordnetModel::tickToBars()
     if (! plug->init())
       return;
 
-    plug->transaction();
-
     if (! plug->setBars(&sym))
       return;
-
-    plug->commit();
 }
 
 void NordnetModel::onPriceTick(QByteArray reply){

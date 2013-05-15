@@ -89,8 +89,6 @@ public:
     virtual int getSymbol (Bars *) = 0;
     virtual int deleteSymbol (Bars *) = 0;
     virtual int setName (Bars *) = 0;
-    virtual void transaction() = 0;
-    virtual void commit() = 0;
 };
 
 Q_DECLARE_INTERFACE(ICurvePlugin, "com.QtTrader.IDBPlugin/0.1")
