@@ -14,7 +14,13 @@ Dependencies
 3. TA-lib 0.3.0		http://www.ta-lib.org/
 4. QWT 5.2.x		http://sourceforge.net/projects/qwt/
 
+For the Nordnet plug-in additional dependencies exist
+1. qjson
+2. openssl
 
+Both is installable with the synaptic package manager in Ubuntu
+
+To be able to use the nordnet plugin you will have to get an account at Nordnet. For more info and details see, https://api.test.nordnet.se/projects/api 
 =======
 
 Build instructions

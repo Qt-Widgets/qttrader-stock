@@ -10,7 +10,7 @@ SOURCES += MarkerBuy.cpp
 HEADERS += MarkerBuyDialog.h
 SOURCES += MarkerBuyDialog.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/MarkerBuy
 INSTALLS += target
 
 QT += core

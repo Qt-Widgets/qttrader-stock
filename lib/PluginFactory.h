@@ -24,7 +24,6 @@ class PluginFactory
 
 private:
     static void* m_pPluginFactory;
-    QMap<QString, QtTraderPlugin*> mLoadedPlugins;
 };
 
 #endif

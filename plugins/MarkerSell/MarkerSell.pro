@@ -10,7 +10,7 @@ SOURCES += MarkerSell.cpp
 HEADERS += MarkerSellDialog.h
 SOURCES += MarkerSellDialog.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/MarkerSell
 INSTALLS += target
 
 QT += core

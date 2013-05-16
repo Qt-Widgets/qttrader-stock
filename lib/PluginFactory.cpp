@@ -5,6 +5,7 @@
  */
 
 #include "PluginFactory.h"
+#include "Global.h"
 #include <QDir>
 #include <QtDebug>
 #include <QPluginLoader>
@@ -30,10 +31,10 @@ QObject* PluginFactory::loadPluginFromString (QString d)
 
 #ifdef DEBUG
     QString s = QDir::currentPath();
-    s.append("/lib").append(d);
+    s.append("/plugins/").append(d).append("/lib").append(d);
 #else
     QString s = INSTALL_PLUGIN_DIR;
-    s.append("/lib").append(d);
+    s.append("/plugins/").append(d).append("/lib").append(d);
 #endif
 
 #if defined(Q_OS_MAC)  
@@ -55,12 +56,8 @@ QObject* PluginFactory::loadPluginFromString (QString d)
 
 QtTraderPlugin* PluginFactory::loadPlugin(QString d)
 {
+
   QtTraderPlugin* pQtTraderPlugin = 0;
-//  if(mLoadedPlugins.contains(d))
-//  {
-//      pQtTraderPlugin = mLoadedPlugins.value(d);
-//  }
-//  else
   {
       QObject* pObject = loadPluginFromString(d);
       pQtTraderPlugin = qobject_cast<QtTraderPlugin *>(pObject);
@@ -68,7 +65,6 @@ QtTraderPlugin* PluginFactory::loadPlugin(QString d)
         qDebug() << "PluginFactory::loadPlugin: error casting Plugin : " <<d;
         Q_ASSERT(pQtTraderPlugin);
       }
-      mLoadedPlugins.insert(d,pQtTraderPlugin);
   }
   return pQtTraderPlugin;
 }

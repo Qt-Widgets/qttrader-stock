@@ -11,7 +11,7 @@ SOURCES += autoTrader.cpp
 HEADERS += autoTraderDialog.h
 SOURCES += autoTraderDialog.cpp
 
-target.path =  "$${INSTALL_PLUGIN_DIR}"
+target.path =  "$${INSTALL_PLUGIN_DIR}"/autoTrader
 INSTALLS += target
 
 QT += core

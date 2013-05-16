@@ -53,7 +53,7 @@ SOURCES += GUIWidget.cpp \
     positionviewmodel.cpp \
     trigger.cpp
 
-target.path =  "$${INSTALL_PLUGIN_DIR}"
+target.path =  "$${INSTALL_PLUGIN_DIR}"/Nordnet
 INSTALLS += target
 
 QT += core

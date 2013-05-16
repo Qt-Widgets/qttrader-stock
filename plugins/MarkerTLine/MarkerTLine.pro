@@ -10,7 +10,7 @@ SOURCES += MarkerTLine.cpp
 HEADERS += MarkerTLineDialog.h
 SOURCES += MarkerTLineDialog.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/MarkerTLine
 INSTALLS += target
 
 QT += core

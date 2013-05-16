@@ -46,8 +46,6 @@ class QtTrader : public QMainWindow
     void wakeup ();
     void shutDown ();
     int loadPlugin (QString);
-//    void runSession ();
-//    void runSession2 (QString);
     void about();
     void pluginLoader();
 

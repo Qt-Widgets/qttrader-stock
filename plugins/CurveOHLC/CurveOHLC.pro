@@ -10,7 +10,7 @@ SOURCES += CurveOHLC.cpp
 HEADERS += OHLCBar.h
 SOURCES += OHLCBar.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/CurveOHLC
 INSTALLS += target
 
 QT += core

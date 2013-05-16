@@ -10,7 +10,7 @@ SOURCES += Volume.cpp
 HEADERS += VolumeDialog.h
 SOURCES += VolumeDialog.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/Volume
 INSTALLS += target
 
 QT += core

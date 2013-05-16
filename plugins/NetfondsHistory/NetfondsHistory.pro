@@ -13,7 +13,7 @@ SOURCES += NetfondsHistory.cpp
 HEADERS += NetfondsHistoryDownload.h
 SOURCES += NetfondsHistoryDownload.cpp
 
-target.path =  "$${INSTALL_PLUGIN_DIR}"
+target.path =  "$${INSTALL_PLUGIN_DIR}"/NetfondsHistory
 INSTALLS += target
 
 QT += core

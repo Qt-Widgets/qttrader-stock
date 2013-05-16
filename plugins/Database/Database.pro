@@ -8,7 +8,7 @@ OBJECTS_DIR += build
 HEADERS += Database.h
 SOURCES += Database.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/Database
 INSTALLS += target
 
 QT += core

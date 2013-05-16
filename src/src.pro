@@ -2,8 +2,6 @@
 # FILES
 #####################################################
 
-SOURCES += LaunchPluginDialog.cpp
-HEADERS += LaunchPluginDialog.h
 SOURCES += main.cpp
 SOURCES += qttrader.cpp
 HEADERS += qttrader.h

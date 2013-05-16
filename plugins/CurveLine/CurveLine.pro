@@ -10,7 +10,7 @@ SOURCES += CurveLine.cpp
 HEADERS += CurveLineBar.h
 SOURCES += CurveLineBar.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/CurveLine
 INSTALLS += target
 
 QT += core

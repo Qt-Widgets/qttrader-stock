@@ -19,7 +19,7 @@ SOURCES += LengthButton.cpp
 HEADERS += PlotWidget.h
 SOURCES += PlotWidget.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/Indicator
 INSTALLS += target
 
 QT += core

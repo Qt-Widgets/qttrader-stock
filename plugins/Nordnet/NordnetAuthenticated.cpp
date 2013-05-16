@@ -81,15 +81,18 @@ void NordnetAuthenticated::login(QString user, QString password)
    QString toEncrypt = QString(username64).append(":").append(password64).append(":").append(timestamp64);
    unsigned char encryptedStore[2560] = {0};
    QByteArray encrypted = QByteArray((const char*)encrypt(toEncrypt, encryptedStore), 256);
-   QByteArray byteArray = QUrl::toPercentEncoding(QString(encrypted.toBase64()));
-   QString dataLogin = QString("auth=").append(QString(byteArray)).append("&service=NEXTAPI");
-   qWarning() << "URL: " << dataLogin;
+   if(encrypted.isNull()){
+     QByteArray byteArray = QUrl::toPercentEncoding(QString(encrypted.toBase64()));
+     QString dataLogin = QString("auth=").append(QString(byteArray)).append("&service=NEXTAPI");
+     qWarning() << "URL: " << dataLogin;
 
-   reply = m_pNam->post(request, dataLogin.toAscii());
+     reply = m_pNam->post(request, dataLogin.toAscii());
 
-   connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors()));
-   connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
-   qWarning() << " End Login";
+     connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors()));
+     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
+     qWarning() << " End Login";
+   }
+   qWarning() << "Login failed: no certificate!";
 }
 
 
@@ -179,20 +182,22 @@ unsigned char* NordnetAuthenticated::encrypt(const QString &s, unsigned char *en
 #endif
 
    QDir dir = QDir(dirString);
-   const char* pfileToOpen = dir.absoluteFilePath(PUBLIC_KEY_FILE).toStdString().c_str();
-   fp = fopen(pfileToOpen,"r");
-   if(fp){
-     public_key = PEM_read_RSA_PUBKEY(fp, NULL, NULL, NULL);
-     fclose(fp);
-   } // Todo, proper error handling
-   if (!public_key) {
-       qFatal("Can't read public key. Recovery unpossible");
-       exit(1);
+   QString pfileToOpen = dir.absoluteFilePath(PUBLIC_KEY_FILE);
+   if(QFileInfo(pfileToOpen).exists()){
+     fp = fopen(pfileToOpen.toStdString().c_str(),"r");
+     if(fp){
+       public_key = PEM_read_RSA_PUBKEY(fp, NULL, NULL, NULL);
+       fclose(fp);
+     } // Todo, proper error handling
+     if (!public_key) {
+         qFatal("Can't read public key. Recovery unpossible");
+         exit(1);
+     }
+     RSA_public_encrypt(s.length(), reinterpret_cast<unsigned char*>(const_cast<char *>(s.toStdString().c_str())), encrypted, public_key, RSA_PKCS1_PADDING);
+     RSA_free(public_key);
+     return encrypted;
    }
-   RSA_public_encrypt(s.length(), reinterpret_cast<unsigned char*>(const_cast<char *>(s.toStdString().c_str())), encrypted, public_key, RSA_PKCS1_PADDING);
-   RSA_free(public_key);
-
-   return encrypted;
+   return 0;
  }
 
 void NordnetAuthenticated::error(QNetworkReply::NetworkError reply)

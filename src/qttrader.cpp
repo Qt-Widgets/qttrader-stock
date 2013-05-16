@@ -35,7 +35,6 @@
 #include "PluginFactory.h"
 #include "Setup.h"
 #include "Global.h"
-#include "LaunchPluginDialog.h"
 #include "Widget.h"
 
 
@@ -202,34 +201,6 @@ QtTrader::loadPlugin (QString name)
   }
   return 1;
 }
-
-/*
-void QtTrader::runSession ()
-{
-  QSettings settings(g_settings);
-  QStringList l = settings.childGroups();
-  if (! l.size())
-    return;
-  
-  QInputDialog *dialog = new QInputDialog(this);
-  dialog->setComboBoxItems(l);
-  dialog->setComboBoxEditable(false);
-  dialog->setLabelText(tr("Select session to run"));
-  dialog->setTextValue(l.at(0));
-  connect(dialog, SIGNAL(textValueSelected(QString)), this, SLOT(runSession2(QString)));
-  connect(dialog, SIGNAL(finished(int)), dialog, SLOT(deleteLater()));
-  dialog->show();
-}
-
-void QtTrader::runSession2 (QString session)
-{
-  QStringList tl;
-  tl << "QtTrader" << "-session" << session;
-  
-  if (! QProcess::startDetached(tl.join(" ")))
-    qDebug() << "QtTrader::runSession2: error launching process" << tl;
-}
-*/
 
 /*
  * Do not remove. To apply to the license agreement for the icons in this software,
