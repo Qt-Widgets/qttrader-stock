@@ -80,8 +80,9 @@ void NordnetAuthenticated::login(QString user, QString password)
    QByteArray timestamp64 = timestamp_in_ms().toAscii().toBase64();
    QString toEncrypt = QString(username64).append(":").append(password64).append(":").append(timestamp64);
    unsigned char encryptedStore[2560] = {0};
-   QByteArray encrypted = QByteArray((const char*)encrypt(toEncrypt, encryptedStore), 256);
-   if(encrypted.isNull()){
+   unsigned char* test = encrypt(toEncrypt, encryptedStore);
+   if(test != NULL){
+     QByteArray encrypted = QByteArray((const char*)test,256);
      QByteArray byteArray = QUrl::toPercentEncoding(QString(encrypted.toBase64()));
      QString dataLogin = QString("auth=").append(QString(byteArray)).append("&service=NEXTAPI");
      qWarning() << "URL: " << dataLogin;
@@ -176,11 +177,11 @@ unsigned char* NordnetAuthenticated::encrypt(const QString &s, unsigned char *en
    OpenSSL_add_all_algorithms();
 
 #ifdef DEBUG
-    QString dirString = QDir::currentPath();
+    QString dirString = QDir::currentPath().append("/plugins");
 #else
     QString dirString = INSTALL_PLUGIN_DIR;
 #endif
-
+   dirString.append("/Nordnet");
    QDir dir = QDir(dirString);
    QString pfileToOpen = dir.absoluteFilePath(PUBLIC_KEY_FILE);
    if(QFileInfo(pfileToOpen).exists()){
@@ -197,7 +198,7 @@ unsigned char* NordnetAuthenticated::encrypt(const QString &s, unsigned char *en
      RSA_free(public_key);
      return encrypted;
    }
-   return 0;
+   return NULL;
  }
 
 void NordnetAuthenticated::error(QNetworkReply::NetworkError reply)
