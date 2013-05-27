@@ -112,6 +112,7 @@ SUBDIRS += src
 # compile plugins
 #SUBDIRS += plugins/CDL
 SUBDIRS += plugins/CurveLine
+SUBDIRS += plugins/CurveHistogram
 SUBDIRS += plugins/CurveOHLC
 SUBDIRS += plugins/Database
 SUBDIRS += plugins/Indicator
