@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -77,30 +78,6 @@ CurveOHLC::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
         painter->drawLine (rect.center().x(), yh, rect.center().x(), yl);
         painter->setBrush(b->color());
         painter->drawRect(rect);
-
-        /*
-        ff = false;
-        if (b->close() < b->open())
-          ff = true;
-
-        if (! ff)
-        {
-          // empty candle c > o
-          QRect rect(QPoint(x + 2, yc), QPoint(x + width - 2, yo));
-          painter->drawLine (rect.center().x(), yh, rect.center().x(), yl);
-          painter->setBrush(curve->plot()->canvasBackground());
-          painter->drawRect(rect);
-        }
-        else
-        {
-          // filled candle c < o
-          QRect rect(QPoint(x + 2, yo), QPoint(x + width - 2, yc));
-          painter->drawLine (rect.center().x(), yh, rect.center().x(), yl);
-          painter->setBrush(b->color());
-          painter->drawRect(rect);
-        }
-        break;
-        */
       }
     }
   }
