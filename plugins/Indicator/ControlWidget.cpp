@@ -269,7 +269,7 @@ void ControlWidget::setPan (int min, int max, int page)
   _panScrollbar->setValue(max);
 }
 
-void ControlWidget::setZoom (int min, int max, int page){
+void ControlWidget::setZoom (int /*min*/, int max, int page){
     qDebug() << "ControlWidget->setZoom";
   //  qDebug() << min;
     qDebug() << max;

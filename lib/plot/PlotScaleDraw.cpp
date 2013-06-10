@@ -42,37 +42,27 @@ QwtText PlotScaleDraw::label (double v) const
   }
 
   QString s;
-  if (tv < 1000)
-   s = QString::number(tv, 'f', 2);
-  else
+  if (tv < 1000000)
   {
-    if (tv >= 1000 && tv < 1000000)
-    {
-      s = QString::number(tv / 1000, 'f', 2);
-      while (s.endsWith("0"))
-        s.chop(1);
-      while (s.endsWith("."))
-        s.chop(1);
-      s.append("K");
-    }
-    else if (tv >= 1000000 && tv < 1000000000)
-    {
-      s = QString::number(tv / 1000000, 'f', 2);
-      while (s.endsWith("0"))
-        s.chop(1);
-      while (s.endsWith("."))
-        s.chop(1);
-      s.append("M");
-    }
-    else if (tv >= 1000000000)
-    {
-      s = QString::number(tv / 1000000000, 'f', 2);
-      while (s.endsWith("0"))
-        s.chop(1);
-      while (s.endsWith("."))
-        s.chop(1);
-      s.append("B");
-    }
+   s = QString::number(tv, 'f', 2);
+  }
+  else if (tv >= 1000000 && tv < 1000000000)
+  {
+    s = QString::number(tv / 1000000, 'f', 2);
+    while (s.endsWith("0"))
+      s.chop(1);
+    while (s.endsWith("."))
+      s.chop(1);
+    s.append("M");
+  }
+  else if (tv >= 1000000000)
+  {
+    s = QString::number(tv / 1000000000, 'f', 2);
+    while (s.endsWith("0"))
+      s.chop(1);
+    while (s.endsWith("."))
+      s.chop(1);
+    s.append("B");
   }
 
   if (flag)

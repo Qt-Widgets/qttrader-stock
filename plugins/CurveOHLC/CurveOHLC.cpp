@@ -43,7 +43,6 @@ CurveOHLC::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &
 
   int loop = sd->lowerBound();
   int size = sd->upperBound();
-  bool ff = false;
   
   for (; loop < size; loop++)
   {
