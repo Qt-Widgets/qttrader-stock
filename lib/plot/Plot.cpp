@@ -210,8 +210,6 @@ void Plot::setLogScaling (bool d)
     setAxisScaleEngine(QwtPlot::yRight, new QwtLog10ScaleEngine);
   else
     setAxisScaleEngine(QwtPlot::yRight, new QwtLinearScaleEngine);
-
-//  replot();
 }
 
 void Plot::showDate (bool d)
@@ -287,28 +285,33 @@ void Plot::setHighLow ()
         _plotSettings.low = l;
     }
   }
-  if(high){
-    setAxisScale(QwtPlot::yRight, low, high);
-  }else{
-    setAxisScale(QwtPlot::yRight, _plotSettings.low, _plotSettings.high);
+  if(high)
+  {
+    //Add 2% margin at top and bottom of plot
+    float span = high-low;
+    float margin = span / 50;
+    setAxisScale(QwtPlot::yRight, low-margin, high+margin);
   }
-//TODO
-//  setAxisScale(QwtPlot::yRight, 0, 100);
+  else
+  {
+    float span = _plotSettings.high-_plotSettings.low;
+    float margin = span / 50;
+    setAxisScale(QwtPlot::yRight, _plotSettings.low-margin, _plotSettings.high+margin);
+ }
 }
 
 void Plot::setStartIndex (int index)
 {
-  qDebug() << "Plot::setStartIndex";
+  qDebug() << "Plot::setStartIndex: " << index;
   int dstart, dend;
   if (! _dateScaleDraw->startEndRange(dstart, dend))
     return;
 
+  // Set start position to index and end poition to index - page size
   _plotSettings.startPos = index;
-  int page = mpage;
-  qDebug() << "page " << page;
-  _plotSettings.endPos = _plotSettings.startPos + page;
+  _plotSettings.endPos = index + mpage;
   setHighLow();
-  // Set start position to index and end poition to index + rangeScroller value
+
   qDebug() << "end: " << _plotSettings.endPos;
   qDebug() << "start: " << _plotSettings.startPos;
   setAxisScale(QwtPlot::xBottom, _plotSettings.startPos, _plotSettings.endPos);
@@ -698,27 +701,22 @@ void Plot::showMarkerMenu ()
 
 void Plot::markerDialog ()
 {
-  if (! _plotSettings.selected)
-    return;
-
-  Entity *e = _plotSettings.selected->settings();
-  if (! e)
-    return;
-
-  QVariant *plugin = e->get(QString("plugin"));
-  if (! plugin)
-    return;
-
-  IMarkerPlugin *plug =dynamic_cast<IMarkerPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(plugin->toString()));
-  if (! plug)
-    return;
-
-  QDialog* pDialog = plug->getDialog(this, e);
-  if (!pDialog)
-    return;
-
-  connect(pDialog, SIGNAL(accepted()), this, SLOT(markerDialog2()));
-  pDialog->show();
+  if (_plotSettings.selected){
+      Entity *e = _plotSettings.selected->settings();
+      if (e){
+          QVariant *plugin = e->get(QString("plugin"));
+          if (plugin){
+              IMarkerPlugin *plug =dynamic_cast<IMarkerPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(plugin->toString()));
+              if (plug){
+                  QDialog* pDialog = plug->getDialog(this, e);
+                  if (pDialog){
+                      connect(pDialog, SIGNAL(accepted()), this, SLOT(markerDialog2()));
+                      pDialog->show();
+                  }
+              }
+          }
+      }
+  }
 }
 
 void Plot::markerDialog2 ()
