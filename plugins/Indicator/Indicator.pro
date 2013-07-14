@@ -8,8 +8,10 @@ LIBS += -L../../lib -lQTTRADER -lta_lib
 MOC_DIR += build
 OBJECTS_DIR += build
 
-HEADERS += ControlWidget.h
-SOURCES += ControlWidget.cpp
+HEADERS += ControlWidget.h \
+    ToolbarWidget.h
+SOURCES += ControlWidget.cpp \
+    ToolbarWidget.cpp
 HEADERS += Indicator.h
 SOURCES += Indicator.cpp
 HEADERS += IndicatorDialog.h

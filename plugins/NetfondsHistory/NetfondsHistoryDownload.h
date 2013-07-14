@@ -32,26 +32,15 @@ class NetfondsHistoryDownload : public QObject
 {
   Q_OBJECT
   
-
   signals:
     void signalMessage (QString);
-  
+
   public:
-
     ~NetfondsHistoryDownload();
-
-    NetfondsHistoryDownload (QObject *);
-    void download (QStringList symbolFiles, QDateTime sd, QDateTime ed);
-    void getUrl (QDateTime sd, QDateTime ed, QString symbol, QString &url);
-    void parseHistory (QByteArray &ba, QString &symbol, QString &name);
-    int downloadName (QString symbol, QString &name);
-    void importHistory ();
-
-  public slots:
-    void stop ();
-    
-  private:
-    bool _stop;
+    NetfondsHistoryDownload(QObject *);
+    void download(QStringList symbolFiles);
+    void getUrl(QString symbol, QString &url);
+    void parseHistory(QByteArray &ba, QString &symbol, QString &name);
 };
 
 #endif

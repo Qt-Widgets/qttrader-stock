@@ -70,14 +70,12 @@ QtTrader::QtTrader (QString session, QString plugin)
   loadPlugin(tplugin);
 }
 
-void
-QtTrader::shutDown ()
+void QtTrader::shutDown ()
 {
   save();
 }
 
-void
-QtTrader::createGUI ()
+void QtTrader::createGUI ()
 {
   QMenuBar *menuBar = new QMenuBar();
   setMenuBar(menuBar);
@@ -107,8 +105,7 @@ QtTrader::createGUI ()
   setUnifiedTitleAndToolBarOnMac(true);
 }
 
-void
-QtTrader::loadSettings ()
+void QtTrader::loadSettings ()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
@@ -126,8 +123,7 @@ QtTrader::loadSettings ()
   move(p);
 }
 
-void
-QtTrader::save()
+void QtTrader::save()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
@@ -138,16 +134,14 @@ QtTrader::save()
   settings.setValue("main_window_pos", pos());
 }
 
-void
-QtTrader::statusMessage (QString d)
+void QtTrader::statusMessage (QString d)
 {
   // update the status bar with a new message from somewhere
   statusBar()->showMessage(d, 0);
   wakeup();
 }
 
-void
-QtTrader::wakeup ()
+void QtTrader::wakeup ()
 {
   // force app to process the event que so we keep from any blocking
   qApp->processEvents();
@@ -165,8 +159,7 @@ void QtTrader::pluginLoader()
   loadPlugin(name);
 }
 
-int
-QtTrader::loadPlugin (QString name)
+int QtTrader::loadPlugin (QString name)
 {
   if (name.isEmpty())
     return 0;

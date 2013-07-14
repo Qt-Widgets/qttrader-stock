@@ -41,8 +41,7 @@ GUIWidget::~GUIWidget ()
   saveSettings();
 }
 
-void
-GUIWidget::createGUI ()
+void GUIWidget::createGUI ()
 {
   _timer = new QTimer(this);
   connect(_timer, SIGNAL(timeout()), this, SLOT(updateGUI()));
@@ -56,23 +55,6 @@ GUIWidget::createGUI ()
   form->setSpacing(2);
   form->setMargin(0);
   vbox->addLayout(form);
-  
-  // templates
-  _templates = new QComboBox;
-  form->addRow (tr("Templates"), _templates);
-  
-  // range
-  DateRange dr;
-  _range = new QComboBox;
-  _range->addItems(dr.list());
-  _range->setCurrentIndex(5);
-  form->addRow (tr("Range"), _range);
-  
-  // symbol file
-//  _symbolButton = new QPushButton(0);
-//  connect(_symbolButton, SIGNAL(signalSelectionChanged(QStringList)), this, SLOT(buttonStatus()));
-//  _symbolButton->setFiles(QStringList() << "/tmp/yahoo_symbols");
-//  form->addRow (tr("Symbol File"), _symbolButton);
   
   // log
   QGroupBox *gbox = new QGroupBox;
@@ -104,24 +86,19 @@ GUIWidget::createGUI ()
 
 }
 
-void
-GUIWidget::downloadHistory ()
+void GUIWidget::downloadHistory ()
 {
   _log->clear();
   setEnabled(false);
   _okButton->setEnabled(false);
   _cancelButton->setEnabled(true);
   
-  DateRange dr;
-  QDateTime ed = QDateTime::currentDateTime();
-  QDateTime sd = dr.interval(ed, _range->currentIndex());
-  
   _timer->start(100);
   
   NetfondsHistoryDownload function(this);
   connect(&function, SIGNAL(signalMessage(QString)), _log, SLOT(append(const QString &)));
   connect(_cancelButton, SIGNAL(clicked()), &function, SLOT(stop()));
-  function.download(QStringList(QString("/home/mattias/Dokument/netfonds.txt")), sd, ed);
+  function.download(QStringList(QString("/home/mattias/Dokument/netfonds.txt")));
   
   _timer->stop();
 
@@ -130,46 +107,19 @@ GUIWidget::downloadHistory ()
   _cancelButton->setEnabled(false);
 }
 
-void
-GUIWidget::buttonStatus ()
-{
-//  int count = 0;
-  
-//  if (_symbolButton->fileCount())
-//    count++;
-  /*
-  switch (count)
-  {
-    case 1:
-      _okButton->setEnabled(true);
-      break;
-    default:
-      _okButton->setEnabled(false);
-      break;
-  }
-  */
-}
-
-void
-GUIWidget::updateGUI ()
+void GUIWidget::updateGUI ()
 {
   QCoreApplication::processEvents();
 }
 
-void
-GUIWidget::loadSettings ()
+void GUIWidget::loadSettings ()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
-  _range->setCurrentIndex(settings.value(QString("dateRange"), DateRange::_YEAR).toInt());
-//  _symbolButton->setFiles(settings.value(QString("symbolFiles"), QStringList() << "/tmp/yahoo_symbols").toStringList());
 }
 
-void
-GUIWidget::saveSettings ()
+void GUIWidget::saveSettings ()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
-  settings.setValue(QString("dateRange"), _range->currentIndex());
-//  settings.setValue(QString("symbolFiles"), _symbolButton->files());
 }

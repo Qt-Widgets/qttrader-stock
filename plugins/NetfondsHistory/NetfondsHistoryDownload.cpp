@@ -32,26 +32,20 @@
 
 NetfondsHistoryDownload::NetfondsHistoryDownload (QObject *p) : QObject (p)
 {
-  _stop = false;
 }
 
 NetfondsHistoryDownload::~NetfondsHistoryDownload()
 {
-    _stop = true;
 }
 
-void NetfondsHistoryDownload::download (QStringList symbolFiles, QDateTime sd, QDateTime ed)
+void NetfondsHistoryDownload::download(QStringList symbolFiles)
 {
-  _stop = false;
-
   QNetworkAccessManager manager;
 
   int loop = 0;
   for (; loop < symbolFiles.size(); loop++)
   {
-    if (_stop == true)
-      break;
-    
+
     QFile f(symbolFiles.at(loop));
     if (! f.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -61,22 +55,20 @@ void NetfondsHistoryDownload::download (QStringList symbolFiles, QDateTime sd, Q
       continue;
     }
 
-    while (! f.atEnd() && _stop == false)
+    while (! f.atEnd())
     {
       QString symbol = f.readLine();
       symbol = symbol.trimmed();
       if (symbol.isEmpty())
         continue;
 
-      // get name
       QString name;
-//      downloadName(symbol, name);
 
       name = symbol;
 
       // get the url
       QString url;
-      getUrl(sd, ed, symbol, url);
+      getUrl(symbol, url);
       QStringList mess;
       mess << url;
       mess << tr("Downloading") << symbol;
@@ -92,18 +84,12 @@ void NetfondsHistoryDownload::download (QStringList symbolFiles, QDateTime sd, Q
       QByteArray ba = reply->readAll();
       parseHistory(ba, symbol, name);
     }
-
     f.close();
   }
 
-  // send status message
-//  if (_stop)
-//    emit signalMessage(tr("Download stopped"));
-//  else
-//    emit signalMessage(tr("Download complete"));
 }
 
-void NetfondsHistoryDownload::getUrl (QDateTime sd, QDateTime ed, QString symbol, QString &url)
+void NetfondsHistoryDownload::getUrl(QString symbol, QString &url)
 {
   url="http://www.netfonds.se/quotes/paperhistory.php?paper=";
   url.append(symbol);
@@ -111,7 +97,7 @@ void NetfondsHistoryDownload::getUrl (QDateTime sd, QDateTime ed, QString symbol
 }
 
 
-void NetfondsHistoryDownload::parseHistory (QByteArray &ba, QString &symbol, QString &name)
+void NetfondsHistoryDownload::parseHistory(QByteArray &ba, QString &symbol, QString &name)
 {
   //quote_date,paper,exch,open,high,low,close,volume,value
   //20121101,OMXS30,Stockholm,1050.03,1064.08,1047.28,1062.51,0,0
@@ -247,43 +233,9 @@ void NetfondsHistoryDownload::parseHistory (QByteArray &ba, QString &symbol, QSt
     return;
   }
 
-  if (! plug->init())
+  if (!plug->init())
     return;
 
-  if (! plug->setBars(&sym))
+  if (!plug->setBars(&sym))
     return;
-}
-
-
-int NetfondsHistoryDownload::downloadName (QString symbol, QString &name)
-{
-  QString url = "http://download.finance.yahoo.com/d/quotes.csv?s=";
-  url.append(symbol);
-  url.append("&f=n");
-  url.append("&e=.csv");
-
-  QNetworkAccessManager manager;
-  QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(url)));
-  QEventLoop e;
-  QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &e, SLOT(quit()));
-  e.exec();
-
-  // parse the data and save quotes
-  QByteArray ba = reply->readAll();
-  QString s(ba);
-  s = s.remove('"');
-  s = s.remove(',');
-  s = s.trimmed();
-  if (s.isEmpty())
-    return 0;
-
-  name = s;
-
-  return 1;
-}
-
-void NetfondsHistoryDownload::stop ()
-{
-  _stop = true;
-  emit signalMessage(tr("Stopping download..."));
 }

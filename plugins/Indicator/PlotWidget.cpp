@@ -42,26 +42,32 @@ PlotWidget::PlotWidget ()
 {
   first = true;
   g_symbol = new Bars;
-  
+
   QVBoxLayout *vbox = new QVBoxLayout;
   vbox->setSpacing(0);
   //Insert a small frame.
   vbox->setMargin(5);
   setLayout(vbox);
   
+
+  _toolbarWidget = new ToolbarWidget();
+  vbox->addWidget(_toolbarWidget);
+
+  connect(_toolbarWidget, SIGNAL(signalSelected()), this, SLOT(refresh()));
+  connect(_toolbarWidget, SIGNAL(signalIndicator()), this, SLOT(indicatorDialog()));
+  connect(_toolbarWidget, SIGNAL(signalLength()), this, SLOT(setBarLength()));
+  connect(_toolbarWidget, SIGNAL(signalRemovePlot()), this, SLOT(removeIndicator()));
+  connect(_toolbarWidget, SIGNAL(signalEditPlot()), this, SLOT(editIndicator()));
+
   // chart splitter
   _csplitter = new QSplitter(Qt::Vertical, 0);
   _csplitter->setOpaqueResize(false);
   vbox->addWidget(_csplitter);
-  
-  _controlWidget = new ControlWidget;
-  connect(_controlWidget, SIGNAL(signalSelected()), this, SLOT(refresh()));
+
+  _controlWidget = new ControlWidget();
+
   connect(_controlWidget, SIGNAL(signalRefresh()), this, SLOT(refresh()));
-  connect(_controlWidget, SIGNAL(signalIndicator()), this, SLOT(indicatorDialog()));
-  connect(_controlWidget, SIGNAL(signalLength()), this, SLOT(setBarLength()));
   connect(_controlWidget, SIGNAL(signalScrollBarChanged(int)), this, SLOT(scrollBarChanged(int)));
-  connect(_controlWidget, SIGNAL(signalRemovePlot()), this, SLOT(removeIndicator()));
-  connect(_controlWidget, SIGNAL(signalEditPlot()), this, SLOT(editIndicator()));
   vbox->addWidget(_controlWidget);
 
   // fix for messed up plot screen if we draw the plot before it has become visible
@@ -215,7 +221,7 @@ void PlotWidget::refresh ()
   // refresh dates
   emit signalSetDates();
 
-  Bars sym = _controlWidget->currentSymbol();
+  Bars sym = _toolbarWidget->currentSymbol();
 
   //Plot all Indicators
   QHashIterator<QString, Plot *> it(_plots);
@@ -257,7 +263,7 @@ void PlotWidget::refresh ()
   setPanScrollBarSize();
   
   QStringList tl;
-  tl << "QtTrader" << "-" << sym.symbol() << "(" + sym.name() + ")" << _controlWidget->lengthText();
+  tl << "QtTrader" << "-" << sym.symbol() << "(" + sym.name() + ")" << _toolbarWidget->lengthText();
   emit signalTitle(tl.join(" "));
 }
 
@@ -325,7 +331,7 @@ void PlotWidget::removeIndicator2 (QString name)
 
 void PlotWidget::setBarLength ()
 {
-  emit signalBarLength(_controlWidget->length());
+  emit signalBarLength(_toolbarWidget->length());
   refresh();
 }
 
@@ -566,17 +572,17 @@ PlotWidget::addPlotSettings (Entity *e)
   */
 bool PlotWidget::loadSymbolData() {
 
-    Bars sym = _controlWidget->currentSymbol();
+    Bars sym = _toolbarWidget->currentSymbol();
 
     //Don't load new data unless symbol or barlength changed
-    if(!(g_symbol->symbol() != sym.symbol() || g_symbol->barLength() != _controlWidget->length()))
+    if(!(g_symbol->symbol() != sym.symbol() || g_symbol->barLength() != _toolbarWidget->length()))
         return false;
 
     if (! _plots.size())
       return false;
 
     // load fresh symbol data
-    if (! _controlWidget->count())
+    if (! _toolbarWidget->count())
       return false;
 
     IDBPlugin *qplug = dynamic_cast<IDBPlugin *>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("Database")));
@@ -586,7 +592,7 @@ bool PlotWidget::loadSymbolData() {
 
     g_symbol->clear();
     g_symbol->setSymbol(sym.symbol());
-    g_symbol->setBarLength(_controlWidget->length());
+    g_symbol->setBarLength(_toolbarWidget->length());
     g_symbol->setPlotRange(_controlWidget->getRange());
 
     if (! qplug->getBars(g_symbol))
