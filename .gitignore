@@ -7,7 +7,16 @@
 *.o
 *.so
 *.so.*
+
+
+# Qt generated files #
+######################
 moc_*.*
+*.ts
+qrc_*.cpp
+qttrader
+qttrader_single.pro
+qttrader_single.pro.user
 
 # Packages #
 ############
