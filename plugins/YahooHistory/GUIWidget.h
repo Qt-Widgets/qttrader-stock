@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,11 +27,11 @@
 #include <QStringList>
 #include <QPushButton>
 #include <QTextEdit>
-#include <QComboBox>
 #include <QTimer>
 
 #include "Widget.h"
-#include "FileButton.h"
+
+class QTableWidget;
 
 class GUIWidget : public Widget
 {
@@ -45,17 +46,18 @@ class GUIWidget : public Widget
 
   public slots:
     void downloadHistory ();
-    void buttonStatus ();
     void updateGUI ();
-   
+    void addTableRow();
+    void contextMenuRequseted(QPoint point);
+
   private:
+    QStringList getTickers();
+
     QPushButton *_okButton;
-    QPushButton *_cancelButton;
-    QComboBox *_templates;
-    QComboBox *_range;
-    FileButton *_symbolButton;
     QTextEdit *_log;
     QTimer *_timer;
+    QTableWidget *m_pTableWidget;
+    QPushButton *m_pAddRowButton;
 };
 
 #endif

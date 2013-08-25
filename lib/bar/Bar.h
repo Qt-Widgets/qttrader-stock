@@ -33,6 +33,7 @@ class Bar
 {
   public:
     Bar ();
+    virtual ~Bar ();
     virtual void setDate (QDateTime);
     virtual QDateTime date ();
     virtual void setColor (QColor);

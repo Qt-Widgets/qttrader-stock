@@ -121,6 +121,7 @@ SUBDIRS += plugins/MarkerSell
 SUBDIRS += plugins/MarkerTLine
 SUBDIRS += plugins/MarkerHLine
 SUBDIRS += plugins/Volume
+SUBDIRS += plugins/YahooHistory
 
 SUBDIRS += plugins/autoTrader
 SUBDIRS += plugins/NetfondsHistory

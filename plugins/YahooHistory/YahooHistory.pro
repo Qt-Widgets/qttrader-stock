@@ -12,14 +12,13 @@ SOURCES += YahooHistory.cpp
 HEADERS += YahooHistoryDownload.h
 SOURCES += YahooHistoryDownload.cpp
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/YahooHistory
 INSTALLS += target
 
 QT += core
 QT += gui
 QT += sql
 QT += network
-
 
 !exists(./build){
   system(echo mkdir build)

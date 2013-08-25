@@ -27,6 +27,10 @@ Bar::Bar ()
 {
 }
 
+Bar::~Bar ()
+{
+}
+
 void
 Bar::setDate (QDateTime)
 {

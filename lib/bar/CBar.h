@@ -33,6 +33,7 @@ class CBar : public Bar
 {
   public:
     CBar ();
+    virtual ~CBar ();
     void setDate (QDateTime);
     QDateTime date ();
     void set (QString, double);
