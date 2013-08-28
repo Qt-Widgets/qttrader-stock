@@ -54,14 +54,14 @@ int MarkerHLine::draw (QPainter *p, const QwtScaleMap &, const QwtScaleMap &yMap
 
   // test start
   QString ts = QString::number(price->toDouble(), 'f', 2);
-  QString s = " " + ts; // prepend space so we can clearly read text
+  QString s = " " + ts + " "; // append an prepend space so we can clearly read text
   QFontMetrics fm = p->fontMetrics();
-  QRect rc = p->boundingRect(0, y - (fm.height() / 2), 1, 1, 0, s);
+  QRect rc = p->boundingRect(p->window().width()-fm.width(s), y - (fm.height() / 2), 1, 1, 0, s);
   p->fillRect(rc, hl->plot()->canvasBackground()); // fill in behind text first
   p->drawText(rc, s); // draw text
   p->drawRect(rc); // draw a nice little box around text
 
-  p->drawLine (rc.width(), y, p->window().width(), y);
+  p->drawLine (0, y, p->window().width()-rc.width(), y);
 
   hl->clearSelectionArea();
 
