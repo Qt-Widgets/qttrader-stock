@@ -14,6 +14,8 @@
 moc_*.*
 *.ts
 qrc_*.cpp
+ui_*.h
+qttrader_defines.h
 qttrader
 qttrader_single.pro
 qttrader_single.pro.user
