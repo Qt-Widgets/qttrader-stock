@@ -19,14 +19,16 @@
 
 #include <QDebug>
 #include <QString>
+#include <QMessageBox>
 #include <QNetworkReply>
 #include <qjson/parser.h>
 #include <qjson/serializer.h>
 
 using namespace QJson;
 
-NordnetModel::NordnetModel(): m_pSession(0), m_pOrderViewModel(0), m_pTradeViewModel(0), m_pPositionViewModel(0)
+NordnetModel::NordnetModel(): m_pSession(0), m_pOrderViewModel(0), m_pTradeViewModel(0), m_pPositionViewModel(0), mPosition(-1), m_pNordnetStream(0)
 {
+
 }
 
 void NordnetModel::login (QString userName, QString password)
@@ -59,28 +61,33 @@ void NordnetModel::getStockData(int pos){
     qWarning() << "json string: " << QString(loginData.data());
     qWarning() << "json2 string: " << QString(json2.data());
     if(m_pSession){
-        NordnetStream* pNordnetStream = new NordnetStream();
-        pNordnetStream->socketConnect(loginData, m_pSession->getPublicHost(), m_pSession->getPublicPort());
-        QObject::connect(pNordnetStream, SIGNAL(data(QByteArray)), this, SLOT(onPriceTick(QByteArray)));
-        pNordnetStream->startSubscription(json2);
+//        NordnetStream* pNordnetStream = new NordnetStream();
+//        pNordnetStream->socketConnect(loginData, m_pSession->getPublicHost(), m_pSession->getPublicPort());
+        if(!m_pNordnetStream)
+        {
+           m_pNordnetStream = new NordnetStream();
+           m_pNordnetStream->socketConnect(loginData, m_pSession->getPublicHost(), m_pSession->getPublicPort());
+         }
+        QObject::connect(m_pNordnetStream, SIGNAL(data(QByteArray)), this, SLOT(onPriceTick(QByteArray)));
+        m_pNordnetStream->startSubscription(json2);
     }else{
-        qWarning() << "Error: No session - failed to get indices!";
+        qWarning() << "Error: No session - failed to get stock data!";
     }
 }
 
-void NordnetModel::getIndex()
-{
-    QByteArray loginData = getLoginData();
-    QByteArray json2 = getSubscriptionString();
-    qWarning() << "json string: " << QString(loginData.data());
-    if(m_pSession){
-        NordnetStream* pNordnetStream = new NordnetStream();
-        pNordnetStream->socketConnect(loginData, m_pSession->getPublicHost(), m_pSession->getPublicPort());
-        pNordnetStream->startSubscription(json2);
-    }else{
-        qWarning() << "Error: No session - failed to get indices!";
-    }
-}
+//void NordnetModel::getIndex()
+//{
+//    QByteArray loginData = getLoginData();
+//    QByteArray json2 = getSubscriptionString();
+//    qWarning() << "json string: " << QString(loginData.data());
+//    if(m_pSession){
+//        NordnetStream* pNordnetStream = new NordnetStream();
+//        pNordnetStream->socketConnect(loginData, m_pSession->getPublicHost(), m_pSession->getPublicPort());
+//        pNordnetStream->startSubscription(json2);
+//    }else{
+//        qWarning() << "Error: No session - failed to get indices!";
+//    }
+//}
 
 void NordnetModel::getMarkets()
 {
@@ -140,6 +147,15 @@ void NordnetModel::onLogin(QNetworkReply *reply)
     qWarning() << "onLogin";
     QVariantMap sessionMap = parseReply(reply).toMap();
     m_pSession = new Session(sessionMap);
+    if(m_pSession->getPrivateHost().isEmpty()){
+        qDebug() << "Login failed";
+        delete m_pSession;
+        m_pSession = NULL;
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Nordnet");
+        msgBox.setText("Login failed.");
+        msgBox.exec();
+    }
     QObject::sender()->deleteLater();
     emit loginDone();
 }
@@ -451,44 +467,38 @@ QByteArray NordnetModel::getLoginData(){
     return serializer.serialize(data);
 }
 
-QByteArray NordnetModel::getPriceSubscriptionString(){
-    QVariantMap args2;
-    QVariantMap data2;
-    args2.insert("t", "price");
-    args2.insert("i", "101");
-    args2.insert("m", 11);
-    data2.insert("cmd", "subscribe");
-    data2.insert("args", args2);
-
-    Serializer serializer;
-    return serializer.serialize(data2);
-}
-
-QByteArray NordnetModel::getSubscriptionString(){
-    QVariantMap args2;
-    QVariantMap data2;
-    args2.insert("t", "price");
-    args2.insert("i", "101");
-    args2.insert("m", 11);
-    data2.insert("cmd", "subscribe");
-    data2.insert("args", args2);
-
-    Serializer serializer;
-    return serializer.serialize(data2);
-}
-
 QByteArray NordnetModel::getSubscriptionString(int pos){
+    mPosition = pos;
     Stock* pStock = mStocks.at(pos);
     QVariantMap args2;
     QVariantMap data2;
     args2.insert("t", "price");
     args2.insert("i", pStock->getIdentifier());
     args2.insert("m", pStock->getMarketId());
-    data2.insert("cmd", "subscribe");
     data2.insert("args", args2);
+    data2.insert("cmd", "subscribe");
 
     Serializer serializer;
     return serializer.serialize(data2);
+}
+
+QByteArray NordnetModel::getUnSubscriptionString()
+{
+  if(mPosition != -1)
+  {
+    Stock* pStock = mStocks.at(mPosition);
+    QVariantMap args2;
+    QVariantMap data2;
+    args2.insert("t", "price");
+    args2.insert("i", pStock->getIdentifier());
+    args2.insert("m", pStock->getMarketId());
+    data2.insert("args", args2);
+    data2.insert("cmd", "unsubscribe");
+
+    Serializer serializer;
+    return serializer.serialize(data2);
+  }
+  return NULL;
 }
 
 void NordnetModel::placeOrder(){
@@ -532,4 +542,19 @@ PositionViewModel* NordnetModel::getPositionViewModel()
 void NordnetModel::addTrigger(Trigger* pTrigger)
 {
     m_pTriggers.append(pTrigger);
+}
+
+void NordnetModel::remove()
+{
+  QByteArray loginData = getLoginData();
+  QByteArray json2 = getUnSubscriptionString();
+  qWarning() << "json string: " << QString(loginData.data());
+  qWarning() << "json2 string: " << QString(json2.data());
+  if(m_pSession){
+//      NordnetStream* pNordnetStream = new NordnetStream();
+//      pNordnetStream->socketConnect(loginData, m_pSession->getPublicHost(), m_pSession->getPublicPort());
+      m_pNordnetStream->startSubscription(json2);
+  }else{
+      qWarning() << "Error: No session - failed to get stock data!";
+  }
 }

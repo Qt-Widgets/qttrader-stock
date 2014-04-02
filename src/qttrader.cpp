@@ -166,31 +166,35 @@ int QtTrader::loadPlugin (QString name)
 
   IGUIPlugin *pPlugin = 0;
   pPlugin = dynamic_cast<IGUIPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(name));
-  if (!pPlugin)
-    return 0;
 
-  Widget *cw = (Widget *) centralWidget();
-  if (cw)
-  {
-    QToolBar *tb = cw->toolbar();
-    if (tb)
-    {
-      removeToolBar(cw->toolbar());
-      delete tb;
-    }
-    
-    delete cw;
-  }
   if(pPlugin){
       Widget* pWidget = pPlugin->create();
-      setCentralWidget(pWidget);
+      // if the plugin returns a widget, set it to main window
+      if(pWidget != NULL)
+      {
+        //remove old central Widget
+        Widget *cw = (Widget *) centralWidget();
+        if (cw)
+        {
+          QToolBar *tb = cw->toolbar();
+          if (tb)
+          {
+            removeToolBar(cw->toolbar());
+            delete tb;
+          }
 
-      connect(pWidget, SIGNAL(signalMessage(QString)), this, SLOT(statusMessage(QString)));
-      connect(pWidget, SIGNAL(signalTitle(QString)), this, SLOT(setWindowTitle(QString)));
+          delete cw;
+        }
+        //And then set up the new one
+        setCentralWidget(pWidget);
+        connect(pWidget, SIGNAL(signalMessage(QString)), this, SLOT(statusMessage(QString)));
+        connect(pWidget, SIGNAL(signalTitle(QString)), this, SLOT(setWindowTitle(QString)));
 
-      QToolBar *pToolBar = pWidget->toolbar();
-      if (pToolBar)
-        addToolBar(pToolBar);
+        QToolBar *pToolBar = pWidget->toolbar();
+        if (pToolBar){
+          addToolBar(pToolBar);
+        }
+    }
   }
   return 1;
 }
@@ -200,7 +204,7 @@ int QtTrader::loadPlugin (QString name)
  * credits for the icons have to be displayed in the about dialog.
  */
 void QtTrader::about(){
-  QMessageBox::information(this, "QtTrader",
+  QMessageBox::information(this, "QtTrader!",
     "QtTrader is a Open Source application for technical analysis of stocks.\n\n"\
     "QtTrader is based in part on the work of Qwt project (http://qwt.sf.net).\n\n"\
     "QtTrader is based in part on the work of TA-lib (http://ta-lib.org).\n\n"\

@@ -27,6 +27,9 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QByteArray>
+#include <QEventLoop>
+#include <QtNetwork>
+#include <QProgressDialog>
 
 class YahooHistoryDownload : public QObject
 {
@@ -37,6 +40,7 @@ class YahooHistoryDownload : public QObject
   
   public:
     YahooHistoryDownload (QObject *);
+    virtual ~YahooHistoryDownload();
     void download (QStringList symbolFiles, QDateTime sd, QDateTime ed);
     void getUrl (QDateTime sd, QDateTime ed, QString symbol, QString &url);
     void parseHistory (QByteArray &ba, QString &symbol, QString &name);
@@ -47,8 +51,11 @@ class YahooHistoryDownload : public QObject
 
   public slots:
     void stop ();
-    
+    bool onName(QNetworkReply*);
+    void onData(QNetworkReply*);
+
   private:
+    QEventLoop eventLoop;
     bool _stop;
 };
 

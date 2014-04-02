@@ -5,8 +5,12 @@ LIBS += -L../../lib -lQTTRADER
 MOC_DIR += build
 OBJECTS_DIR += build
 
-HEADERS += GUIWidget.h
-SOURCES += GUIWidget.cpp
+HEADERS += GUIWidget.h \
+    yahoodownload.h \
+    dialog.h
+SOURCES += GUIWidget.cpp \
+    yahoodownload.cpp \
+    dialog.cpp
 HEADERS += YahooHistory.h
 SOURCES += YahooHistory.cpp
 HEADERS += YahooHistoryDownload.h

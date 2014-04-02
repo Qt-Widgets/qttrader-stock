@@ -29,6 +29,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QtNetwork>
+#include <QProgressDialog>
 
 NetfondsHistoryDownload::NetfondsHistoryDownload (QObject *p) : QObject (p)
 {
@@ -38,29 +39,23 @@ NetfondsHistoryDownload::~NetfondsHistoryDownload()
 {
 }
 
-void NetfondsHistoryDownload::download(QStringList symbolFiles)
+void NetfondsHistoryDownload::download(QStringList symbols)
 {
+  _stop = FALSE;
   QNetworkAccessManager manager;
-
-  int loop = 0;
-  for (; loop < symbolFiles.size(); loop++)
+  QEventLoop eventLoop;
+  QProgressDialog progressDialog("Downloading...", "Cancel", 0, symbols.size());
+  connect(&progressDialog, SIGNAL(canceled()), this, SLOT(stop()));
+  connect(&progressDialog, SIGNAL(canceled()), &eventLoop, SLOT(quit()));
+  progressDialog.setWindowModality(Qt::ApplicationModal);
+  progressDialog.show();
+  for (int loop = 0; (!_stop && loop < symbols.size()); loop++)
   {
-
-    QFile f(symbolFiles.at(loop));
-    if (! f.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-      QStringList mess;
-      mess << tr("Error opening file") << symbolFiles.at(loop) << tr("skipped");
-      emit signalMessage(mess.join(" "));
+    progressDialog.setValue(loop);
+    QString symbol = symbols.at(loop);
+    symbol = symbol.trimmed();
+    if (symbol.isEmpty())
       continue;
-    }
-
-    while (! f.atEnd())
-    {
-      QString symbol = f.readLine();
-      symbol = symbol.trimmed();
-      if (symbol.isEmpty())
-        continue;
 
       QString name;
 
@@ -73,18 +68,19 @@ void NetfondsHistoryDownload::download(QStringList symbolFiles)
       mess << url;
       mess << tr("Downloading") << symbol;
       emit signalMessage(mess.join(" "));
+      mess << "...";
+      progressDialog.setLabelText(QString("Downloading ").append(symbol).append("..."));
 
       // download the data
       QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(url)));
-      QEventLoop e;
-      QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &e, SLOT(quit()));
-      e.exec();
+
+      connect(&progressDialog, SIGNAL(canceled()), &eventLoop, SLOT(quit()));
+      QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &eventLoop, SLOT(quit()));
+      eventLoop.exec();
 
       // parse the data and save quotes
       QByteArray ba = reply->readAll();
       parseHistory(ba, symbol, name);
-    }
-    f.close();
   }
 
 }
@@ -238,4 +234,10 @@ void NetfondsHistoryDownload::parseHistory(QByteArray &ba, QString &symbol, QStr
 
   if (!plug->setBars(&sym))
     return;
+}
+
+
+void NetfondsHistoryDownload::stop()
+{
+  _stop = TRUE;
 }

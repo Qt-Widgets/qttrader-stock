@@ -28,11 +28,14 @@
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
-#include <QtNetwork>
 
 YahooHistoryDownload::YahooHistoryDownload (QObject *p) : QObject (p)
 {
   _stop = FALSE;
+}
+
+YahooHistoryDownload::~YahooHistoryDownload()
+{
 }
 
 void YahooHistoryDownload::download (QStringList symbols, QDateTime sd, QDateTime ed)
@@ -40,11 +43,16 @@ void YahooHistoryDownload::download (QStringList symbols, QDateTime sd, QDateTim
   _stop = FALSE;
 
   QNetworkAccessManager manager;
-  QNetworkAccessManager manager1;
+//  QNetworkAccessManager manager1;
 
-  int loop = 0;
-  for (; loop < symbols.size(); loop++)
+  QProgressDialog progressDialog("Downloading...", "Cancel", 0, symbols.size());
+  connect(&progressDialog, SIGNAL(canceled()), &eventLoop, SLOT(quit()));
+  connect(&progressDialog, SIGNAL(canceled()), this, SLOT(stop()));
+  progressDialog.setWindowModality(Qt::ApplicationModal);
+  progressDialog.show();
+  for (int loop = 0; (!_stop && loop < symbols.size()); loop++)
   {
+    progressDialog.setValue(loop);
     QString symbol = symbols.at(loop);
     symbol = symbol.trimmed();
     if (symbol.isEmpty())
@@ -59,14 +67,15 @@ void YahooHistoryDownload::download (QStringList symbols, QDateTime sd, QDateTim
     getUrl(sd, ed, symbol, url);
 
     QStringList mess;
-    mess << tr("Downloading") << symbol;
+    mess << tr("Downloading") << symbol << "...";
     emit signalMessage(mess.join(" "));
+    mess << "...";
+    progressDialog.setLabelText(mess.join(" "));
 
     // download the data
     QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(url)));
-    QEventLoop e;
-    QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &e, SLOT(quit()));
-    e.exec();
+    QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &eventLoop, SLOT(quit()));
+    eventLoop.exec();
 
     // parse the data and save quotes
     QByteArray ba = reply->readAll();
@@ -74,21 +83,20 @@ void YahooHistoryDownload::download (QStringList symbols, QDateTime sd, QDateTim
 
     /*Try to download the quotes for today */
 
-    getLatestUrl(symbol, url);
+//    getLatestUrl(symbol, url);
 
-    QStringList mess2;
-    mess2 << tr("Downloading today") << symbol << tr(" ") << url;
-    emit signalMessage(mess2.join(" "));
+//    QStringList mess2;
+//    mess2 << tr("Downloading today") << symbol << tr(" ") << url;
+//    emit signalMessage(mess2.join(" "));
 
-    // download the data
-    QNetworkReply *reply1 = manager1.get(QNetworkRequest(QUrl(url)));
-    QEventLoop e1;
-    QObject::connect(&manager1, SIGNAL(finished(QNetworkReply *)), &e1, SLOT(quit()));
-    e1.exec();
+//    // download the data
+//    QNetworkReply *reply1 = manager1.get(QNetworkRequest(QUrl(url)));
+//    QObject::connect(&manager1, SIGNAL(finished(QNetworkReply *)), &e, SLOT(quit()));
+//    e.exec();
 
-    // parse the data and save quotes
-    QByteArray ba2 = reply1->readAll();
-    parseToday(ba2, symbol, name);
+//    // parse the data and save quotes
+//    QByteArray ba2 = reply1->readAll();
+//    parseToday(ba2, symbol, name);
 
   }
 
@@ -401,27 +409,41 @@ int YahooHistoryDownload::downloadName (QString symbol, QString &name)
   url.append("&e=.csv");
 
   QNetworkAccessManager manager;
-  QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(url)));
-  QEventLoop e;
-  QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &e, SLOT(quit()));
-  e.exec();
+  manager.get(QNetworkRequest(QUrl(url)));
+  QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(onName(QNetworkReply* pReply)));
 
   // parse the data and save quotes
-  QByteArray ba = reply->readAll();
+//  QByteArray ba = reply->readAll();
+//  QString s(ba);
+//  s = s.remove('"');
+//  s = s.remove(',');
+//  s = s.trimmed();
+//  if (s.isEmpty())
+//    return 0;
+
+//  name = s;
+
+  return 1;
+}
+
+void YahooHistoryDownload::stop()
+{
+  _stop = TRUE;
+  emit signalMessage(tr("Stopping download..."));
+}
+
+bool YahooHistoryDownload::onName(QNetworkReply* pReply)
+{
+  // parse the data and save quotes
+  QByteArray ba = pReply->readAll();
   QString s(ba);
   s = s.remove('"');
   s = s.remove(',');
   s = s.trimmed();
   if (s.isEmpty())
-    return 0;
+    return false;
 
-  name = s;
+  QString name = s;
 
-  return 1;
-}
-
-void YahooHistoryDownload::stop ()
-{
-  _stop = TRUE;
-  emit signalMessage(tr("Stopping download..."));
+  return true;
 }

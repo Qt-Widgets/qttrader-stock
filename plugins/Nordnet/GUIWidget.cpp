@@ -50,6 +50,9 @@ void GUIWidget::createGUI ()
   QWidget *pWidget = loader.load(&file, this);
   file.close();
 
+  QPushButton* pRemovebutton = qFindChild<QPushButton*>(pWidget, "removeSubscribtion");
+  connect(pRemovebutton, SIGNAL(clicked()), m_pModel, SLOT(remove()));
+
   QPushButton* pPushbutton = qFindChild<QPushButton*>(pWidget, "logout");
   connect(pPushbutton, SIGNAL(clicked()), m_pModel, SLOT(logout()));
 
@@ -220,11 +223,12 @@ void GUIWidget::onTrade()
 
     if(m_pModel->mPriceTicks.size() > 0)
     {
-        PriceTick* pPriceTick = m_pModel->mPriceTicks.at(0);
+        PriceTick* pPriceTick = m_pModel->mPriceTicks.at(m_pModel->mPriceTicks.size()-1);
         pBid->setText(pPriceTick->bidPrice);
         pAsk->setText(pPriceTick->askPrice);
         pLatest->setText(pPriceTick->lastPrice);
-        pVolume->setText(pPriceTick->lastVolume);
+        pVolume->setText(pPriceTick->turnOverVolume);
+
     }
 }
 

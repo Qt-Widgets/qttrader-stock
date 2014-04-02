@@ -100,7 +100,7 @@ void GUIWidget::createGUI ()
 
   // ok button
   _okButton = bb->addButton(QDialogButtonBox::Ok);
-  _okButton->setText(tr("&OK"));
+  _okButton->setText(tr("&Download"));
   connect(_okButton, SIGNAL(clicked()), this, SLOT(downloadHistory()));
 }
 

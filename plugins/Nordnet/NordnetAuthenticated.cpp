@@ -93,7 +93,10 @@ void NordnetAuthenticated::login(QString user, QString password)
      connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(error(QNetworkReply::NetworkError)));
      qWarning() << " End Login";
    }
-   qWarning() << "Login failed: no certificate!";
+   else
+   {
+      qWarning() << "Login failed: no certificate!";
+   }
 }
 
 
@@ -184,6 +187,7 @@ unsigned char* NordnetAuthenticated::encrypt(const QString &s, unsigned char *en
    dirString.append("/Nordnet");
    QDir dir = QDir(dirString);
    QString pfileToOpen = dir.absoluteFilePath(PUBLIC_KEY_FILE);
+   qDebug() << pfileToOpen;
    if(QFileInfo(pfileToOpen).exists()){
      fp = fopen(pfileToOpen.toStdString().c_str(),"r");
      if(fp){

@@ -41,6 +41,12 @@ class NetfondsHistoryDownload : public QObject
     void download(QStringList symbolFiles);
     void getUrl(QString symbol, QString &url);
     void parseHistory(QByteArray &ba, QString &symbol, QString &name);
+
+public slots:
+  void stop();
+
+  private:
+    bool _stop;
 };
 
 #endif

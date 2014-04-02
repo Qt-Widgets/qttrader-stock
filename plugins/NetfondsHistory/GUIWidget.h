@@ -14,7 +14,7 @@
 #include <QTextEdit>
 #include <QComboBox>
 #include <QTimer>
-
+#include <QTableWidget>
 #include "Widget.h"
 
 class GUIWidget : public Widget
@@ -32,8 +32,14 @@ class GUIWidget : public Widget
     void downloadHistory ();
     void buttonStatus ();
     void updateGUI ();
-   
+    void addTableRow();
+    void contextMenuRequseted(QPoint point);
+
   private:
+    QStringList getTickers();
+
+    QPushButton *m_pAddRowButton;
+    QTableWidget *m_pTableWidget;
     QPushButton *_okButton;
     QPushButton *_cancelButton;
     QComboBox *_templates;

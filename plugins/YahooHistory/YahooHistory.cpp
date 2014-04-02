@@ -26,11 +26,15 @@
 #include "YahooHistoryDownload.h"
 #include "DateRange.h"
 #include "GUIWidget.h"
+#include "dialog.h"
 
 
 Widget* YahooHistory::create()
 {
-    return new GUIWidget();
+  GUIWidget* pGui = new GUIWidget();
+  pGui->showNormal();
+
+    return NULL; //new GUIWidget();
 }
 
 Entity* YahooHistory::querySettings()

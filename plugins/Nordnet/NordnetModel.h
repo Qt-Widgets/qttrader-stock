@@ -19,7 +19,7 @@ class Market;
 class Stock;
 class Index;
 class PriceTick;
-
+class NordnetStream;
 class QString;
 class QVariant;
 class QNetworkReply;
@@ -51,7 +51,6 @@ public:
 public slots:
     void getAccounts();
     void getMarkets();
-    void getIndex();
     void getStocks(int pos);
     void getStockData(int pos);
     void getChartForStock(int stockPosition);
@@ -81,9 +80,12 @@ public slots:
 
     void onPriceTick(QByteArray reply);
 
+    void remove();
+
     OrderViewModel* getOrderViewModel();
     TradeViewModel* getTradeViewModel();
     PositionViewModel* getPositionViewModel();
+
 
 signals:
     void answer(QString);
@@ -100,8 +102,7 @@ private:
     QVariant parseStream(QByteArray array);
     QVariant parseReply(QNetworkReply *reply);
     QByteArray getSubscriptionString(int pos);
-    QByteArray getSubscriptionString();
-    QByteArray getPriceSubscriptionString();
+    QByteArray getUnSubscriptionString();
     QByteArray getLoginData();
     Session* m_pSession;
     OrderViewModel* m_pOrderViewModel;
@@ -109,6 +110,8 @@ private:
     PositionViewModel* m_pPositionViewModel;
     QList<Trigger*> m_pTriggers;
     QMap<QString, QList<Stock*> > mStocksMap;
+    int mPosition;
+    NordnetStream* m_pNordnetStream;
 };
 
 #endif // NORDNETMODEL_H
