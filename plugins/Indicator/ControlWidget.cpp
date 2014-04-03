@@ -76,11 +76,14 @@ void ControlWidget::resizePanScrollBar (Plot *p)
 
 }
 
-void ControlWidget::setPan (int min, int max, int page)
+void ControlWidget::setPan (int start, int max, int page)
 {
+  int value = _panScrollbar->value();
+  int change = _panScrollbar->maximum()-max;
+  _panScrollbar->setValue(max);
   _panScrollbar->setRange(0, max);
   _panScrollbar->setPageStep(page);
-  _panScrollbar->setValue(max);
+  _panScrollbar->setValue(value-change);
 }
 
 void ControlWidget::setZoom (int /*min*/, int max, int page){

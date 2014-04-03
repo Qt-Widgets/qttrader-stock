@@ -79,6 +79,7 @@ class Plot : public QwtPlot
 //TODO fix getter setter etc
     int high;
     int low;
+    PlotSettings getPlotSettings();
 
   public slots:
     virtual void clear ();
@@ -99,10 +100,7 @@ class Plot : public QwtPlot
     void newMarker (QString);
     void setCrossHairs (bool);
     void setCrossHairsColor (QColor);
-    void setBarSpacing (int);//void
-    //Plot::calculatePlot(){
 
-    //}
     void setBarLength (int);
     void markerDialog ();
     void markerDialog2 ();

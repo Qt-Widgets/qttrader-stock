@@ -162,13 +162,16 @@ void PlotWidget::setPanScrollBarSize ()
   bool flag = false;
   int page = 0;
   int max = 0;
-
+  int min = 0;
+  int end, start;
   QHashIterator<QString, Plot *> it(_plots);
   while (it.hasNext())
   {
     it.next();
     Plot *plot = it.value();
-
+    PlotSettings pPlotSettings = plot->getPlotSettings();
+    start = pPlotSettings.startPos;
+    end = pPlotSettings.endPos;
     int tpage, tmax;
     plot->panScrollBarSize(tpage, tmax);
     
@@ -185,11 +188,14 @@ void PlotWidget::setPanScrollBarSize ()
       if (tmax > max)
         max = tmax;
     }
+//    max = end;
+//    min = start;
   }
 //  qDebug() << "range : " << range;
 //  qDebug() << "(page + max) : " << (page + max);
+  qDebug() << "start " << start << "end "<< end;
    max = (max + page) - range;
-  _controlWidget->setPan(0, max, page);
+  _controlWidget->setPan(end-start, max, page);
 }
 
 void PlotWidget::indicatorDialog ()

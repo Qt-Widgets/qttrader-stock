@@ -16,6 +16,7 @@
     exists(/usr/include/ta-lib) {
       INCLUDEPATH += /usr/include/ta-lib
     }
+    INCLUDEPATH += /usr/include/qwt
   }
 
   freebsd-g++ {

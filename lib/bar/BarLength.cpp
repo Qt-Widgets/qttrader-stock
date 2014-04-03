@@ -25,37 +25,33 @@
 
 BarLength::BarLength ()
 {
-  _list << "1";
-  _list << "5";
-  _list << "10";
-  _list << "15";
-  _list << "30";
-  _list << "60";
-  _list << "D";
-  _list << "W";
-  _list << "M";
+  _list << "1 min";
+  _list << "5 min";
+  _list << "10 min";
+  _list << "15 min";
+  _list << "30 min";
+  _list << "60 min";
+  _list << "Day";
+  _list << "Week";
+  _list << "Month";
 }
 
-QStringList
-BarLength::list ()
+QStringList BarLength::list()
 {
   return _list;
 }
 
-int
-BarLength::stringToIndex (QString d)
+int BarLength::stringToIndex(QString d)
 {
   return _list.indexOf(d);
 }
 
-QString
-BarLength::indexToString (int d)
+QString BarLength::indexToString(int d)
 {
   return _list.at(d);
 }
 
-void
-BarLength::interval (QDateTime dt, int length, QDateTime &startDate, QDateTime &endDate)
+void BarLength::interval(QDateTime dt, int length, QDateTime &startDate, QDateTime &endDate)
 {
   startDate = dt;
 

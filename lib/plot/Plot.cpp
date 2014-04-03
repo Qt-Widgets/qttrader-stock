@@ -223,12 +223,6 @@ void Plot::setCrossHairs (bool d)
   replot();
 }
 
-void Plot::setBarSpacing (int d)
-{
-  _plotSettings.spacing = d;
-  setStartIndex(_plotSettings.startPos);
-}
-
 void Plot::setHighLow ()
 {
   _plotSettings.high = 0;
@@ -302,7 +296,7 @@ void Plot::setHighLow ()
 
 void Plot::setStartIndex (int index)
 {
-  qDebug() << "Plot::setStartIndex: " << index;
+//  qDebug() << "Plot::setStartIndex: " << index;
   int dstart, dend;
   if (! _dateScaleDraw->startEndRange(dstart, dend))
     return;
@@ -312,8 +306,6 @@ void Plot::setStartIndex (int index)
   _plotSettings.endPos = index + mpage;
   setHighLow();
 
-  qDebug() << "end: " << _plotSettings.endPos;
-  qDebug() << "start: " << _plotSettings.startPos;
   setAxisScale(QwtPlot::xBottom, _plotSettings.startPos, _plotSettings.endPos);
   setYPoints();
   replot();
@@ -494,14 +486,11 @@ void Plot::panScrollBarSize (int &page, int &max)
   qDebug() << "Plot::panScrollBarSize";
   if(g_symbol->bars()){
     page = (width() / _plotSettings.spacing);
-    qDebug() << "page: " << page;
 
     max = g_symbol->bars() - page + STEPS;
-    qDebug() << "scrollbar max: " << max;
     if (max < 0)
     {
-      qDebug() << "ERROR: max scrollbar value less than null";
-//      Q_ASSERT(false);
+      //Everything fits on screen, no need for a slider
     }
   }
 }
@@ -779,13 +768,16 @@ void Plot::setPage(int i){
   * @return the start position
   */
 int Plot::getStartPosition(){
-
-    int retVal = 0;
-    retVal = g_symbol->bars() - mpage + STEPS;
-    if (retVal < 0){
-        qWarning() << "ERROR: Start position for plot < 0";
-        retVal = 0;
+    int retVal1 = 0;
+    int retVal2 = 0;
+    retVal1 = _plotSettings.startPos + mpage - (_plotSettings.endPos - _plotSettings.startPos);
+    retVal2 = g_symbol->bars() - mpage + STEPS;
+    if(retVal1>retVal2){
+        return retVal2;
     }
-    qDebug() << "Start position: " << retVal;
-    return retVal;
+    return retVal1;
+}
+
+PlotSettings Plot::getPlotSettings(){
+    return _plotSettings;
 }

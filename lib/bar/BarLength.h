@@ -45,11 +45,11 @@ class BarLength
       _MONTHLY
     };
 
-    BarLength ();
-    QStringList list ();
-    int stringToIndex (QString);
-    QString indexToString (int);
-    void interval (QDateTime dt, int length, QDateTime &startDate, QDateTime &endDate);
+    BarLength();
+    QStringList list();
+    int stringToIndex(QString);
+    QString indexToString(int);
+    void interval(QDateTime dt, int length, QDateTime &startDate, QDateTime &endDate);
     
   private:
     QStringList _list;

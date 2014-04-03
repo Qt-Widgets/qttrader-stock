@@ -23,7 +23,7 @@ message("Using QMAKE_RPATHDIR=$$QMAKE_RPATHDIR")
 
 QMAKE_CXXFLAGS += -rdynamic -ffast-math
 
-#INCLUDEPATH += /usr/local/qwt-5.2.2/include
+INCLUDEPATH += /usr/include/qwt
 INCLUDEPATH += /usr/local/include/ta-lib 
 INCLUDEPATH += ../lib
 INCLUDEPATH += ../lib/bar

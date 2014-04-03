@@ -1,8 +1,10 @@
 #include "pricetick.h"
 #include <QVariant>
+//#include <QtGui>
 
 PriceTick::PriceTick(QVariantMap &map) : Tick (map)
 {
+//     qDebug() <<"new PriceTick";
      askPrice = map["ask"].toString();
      askVolume = map["ask_volume"].toString();
      bidPrice = map["bid"].toString();

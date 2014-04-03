@@ -41,7 +41,7 @@ void GUIWidget::createGUI ()
   connect(m_pModel, SIGNAL(marketsDone()), this, SLOT(onMarkets()));
   connect(m_pModel, SIGNAL(stocksDone()), this, SLOT(onStocks()));
   connect(m_pModel, SIGNAL(orderModelUpdated()), this, SLOT(onOrderModelUpdated()));
-  connect(m_pModel, SIGNAL(tradeModelUpdated()), this, SLOT(onTradeModelUpdated()));
+//  connect(m_pModel, SIGNAL(tradeModelUpdated()), this, SLOT(onTradeModelUpdated()));
   connect(m_pModel, SIGNAL(positionModelUpdated()), this, SLOT(onPositionModelUpdated()));
 
   QUiLoader loader;

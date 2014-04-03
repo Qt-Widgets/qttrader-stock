@@ -75,11 +75,11 @@ TARGET = QTTRADER
 VERSION = 0.1.0
 
 
+INCLUDEPATH += /usr/include/qwt
 INCLUDEPATH += /usr/local/include/ta-lib
 INCLUDEPATH += ./bar
 INCLUDEPATH += ./plot
 INCLUDEPATH += ./curve
-#INCLUDEPATH += /usr/local/qwt-5.2.2/include
 
 LIBS += -L/usr/lib
 

@@ -98,6 +98,7 @@ signals:
     void positionModelUpdated();
 
 private:
+    QString getTicker(QString market, QString identifier);
     void tickToBars();
     QVariant parseStream(QByteArray array);
     QVariant parseReply(QNetworkReply *reply);
@@ -110,8 +111,12 @@ private:
     PositionViewModel* m_pPositionViewModel;
     QList<Trigger*> m_pTriggers;
     QMap<QString, QList<Stock*> > mStocksMap;
+
     int mPosition;
     NordnetStream* m_pNordnetStream;
+
+    QMap<QString, QList<Stock*> > mStocksMarketMap;
+
 };
 
 #endif // NORDNETMODEL_H

@@ -307,6 +307,8 @@ void NordnetModel::onStocks(QNetworkReply *reply, int marketID){
             mStocks.append(new Stock(map));
         }
     }
+    //Are we sure that all Stocks have the same market?
+    mStocksMarketMap.insert(QString::number(mStocks.at(0)->getMarketId()), mStocks);
     mStocksMap.insert(QString::number(marketID), mStocks);
     reply->deleteLater();
     QObject::sender()->deleteLater();
@@ -345,12 +347,14 @@ void NordnetModel::tickToBars()
 {
     Bars sym;
     sym.setExchange(QString("Nordnet"));
-    sym.setTicker(mPriceTicks.at(0)->getInstrument());
-    sym.setName(mPriceTicks.at(0)->getInstrument());
+    PriceTick* pTick = mPriceTicks.at(mPriceTicks.size()-1);
+    sym.setTicker(getTicker(pTick->getMarketPlace(), pTick->getInstrument()));
+    sym.setName(getTicker(pTick->getMarketPlace(), pTick->getInstrument()));
     sym.setSymbolType(QString("Stock"));
 
 //    int i = 0;
     BarType bt;
+    qDebug() << "mPriceTicks.size: " << mPriceTicks.size();
     for(int i = 0; i < mPriceTicks.size(); i++)
     {
         CBar* pBar = new CBar();
@@ -515,6 +519,7 @@ void NordnetModel::placeSellOrder(int identifier, QString volume, QString price)
     pNordnetAuthenticator->postRequest(QString("accounts/").append(mAccounts.first()->getId()).append("/orders"), orderString);
     qWarning() << orderString;
 }
+
 void NordnetModel::placeBuyOrder(int identifier, QString volume, QString price){
 
     Stock* pStock = mStocks.at(identifier);
@@ -557,4 +562,16 @@ void NordnetModel::remove()
   }else{
       qWarning() << "Error: No session - failed to get stock data!";
   }
+}
+
+QString NordnetModel::getTicker(QString market, QString identifier) {
+    if(mStocksMarketMap.contains(market)){
+        QList<Stock*> stocks = mStocksMarketMap.value(market);
+        for(int i = 0; i < stocks.size(); i++){
+            if(stocks.at(i)->getIdentifier() == identifier){
+                return stocks.at(i)->getName();
+            }
+        }
+    }
+    return "ERROR";
 }
