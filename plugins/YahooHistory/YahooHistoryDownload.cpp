@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,91 +22,82 @@
 
 #include "YahooHistoryDownload.h"
 #include "PluginFactory.h"
-#include "Bars.h"
-#include "BarType.h"
+#include "bar/Bars.h"
+#include "bar/BarType.h"
 
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
-#include <QtNetwork>
 
 YahooHistoryDownload::YahooHistoryDownload (QObject *p) : QObject (p)
 {
   _stop = FALSE;
 }
 
-void YahooHistoryDownload::download (QStringList symbolFiles, QDateTime sd, QDateTime ed)
+YahooHistoryDownload::~YahooHistoryDownload()
+{
+}
+
+void YahooHistoryDownload::download (QStringList symbols, QDateTime sd, QDateTime ed)
 {
   _stop = FALSE;
 
   QNetworkAccessManager manager;
-  QNetworkAccessManager manager1;
+//  QNetworkAccessManager manager1;
 
-  int loop = 0;
-  for (; loop < symbolFiles.size(); loop++)
+  QProgressDialog progressDialog("Downloading...", "Cancel", 0, symbols.size());
+  connect(&progressDialog, SIGNAL(canceled()), &eventLoop, SLOT(quit()));
+  connect(&progressDialog, SIGNAL(canceled()), this, SLOT(stop()));
+  progressDialog.setWindowModality(Qt::ApplicationModal);
+  progressDialog.show();
+  for (int loop = 0; (!_stop && loop < symbols.size()); loop++)
   {
-    if (_stop == TRUE)
-      break;
-    
-    QFile f(symbolFiles.at(loop));
-    if (! f.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-      QStringList mess;
-      mess << tr("Error opening file") << symbolFiles.at(loop) << tr("skipped");
-      emit signalMessage(mess.join(" "));
+    progressDialog.setValue(loop);
+    QString symbol = symbols.at(loop);
+    symbol = symbol.trimmed();
+    if (symbol.isEmpty())
       continue;
-    }
 
-    while (! f.atEnd() && _stop == FALSE)
-    {
-      QString symbol = f.readLine();
-      symbol = symbol.trimmed();
-      if (symbol.isEmpty())
-        continue;
+    // get name
+    QString name;
+    downloadName(symbol, name);
 
-      // get name
-      QString name;
-      downloadName(symbol, name);
+    // get the url
+    QString url;
+    getUrl(sd, ed, symbol, url);
 
-      // get the url
-      QString url;
-      getUrl(sd, ed, symbol, url);
-      
-      QStringList mess;
-      mess << tr("Downloading") << symbol;
-      emit signalMessage(mess.join(" "));
+    QStringList mess;
+    mess << tr("Downloading") << symbol << "...";
+    emit signalMessage(mess.join(" "));
+    mess << "...";
+    progressDialog.setLabelText(mess.join(" "));
 
-      // download the data
-      QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(url)));
-      QEventLoop e;
-      QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &e, SLOT(quit()));
-      e.exec();
+    // download the data
+    QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(url)));
+    QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &eventLoop, SLOT(quit()));
+    eventLoop.exec();
 
-      // parse the data and save quotes
-      QByteArray ba = reply->readAll();
-      parseHistory(ba, symbol, name);
+    // parse the data and save quotes
+    QByteArray ba = reply->readAll();
+    parseHistory(ba, symbol, name);
 
-      /*Try to download the quotes for today */
+    /*Try to download the quotes for today */
 
-      getLatestUrl(symbol, url);
+//    getLatestUrl(symbol, url);
 
-      QStringList mess2;
-      mess2 << tr("Downloading today") << symbol << tr(" ") << url;
-      emit signalMessage(mess2.join(" "));
+//    QStringList mess2;
+//    mess2 << tr("Downloading today") << symbol << tr(" ") << url;
+//    emit signalMessage(mess2.join(" "));
 
-      // download the data
-      QNetworkReply *reply1 = manager1.get(QNetworkRequest(QUrl(url)));
-      QEventLoop e1;
-      QObject::connect(&manager1, SIGNAL(finished(QNetworkReply *)), &e1, SLOT(quit()));
-      e1.exec();
+//    // download the data
+//    QNetworkReply *reply1 = manager1.get(QNetworkRequest(QUrl(url)));
+//    QObject::connect(&manager1, SIGNAL(finished(QNetworkReply *)), &e, SLOT(quit()));
+//    e.exec();
 
-      // parse the data and save quotes
-      QByteArray ba2 = reply1->readAll();
-      parseToday(ba2, symbol, name);
+//    // parse the data and save quotes
+//    QByteArray ba2 = reply1->readAll();
+//    parseToday(ba2, symbol, name);
 
-    }
-
-    f.close();
   }
 
   // send status message
@@ -258,8 +250,8 @@ void YahooHistoryDownload::parseHistory (QByteArray &ba, QString &symbol, QStrin
     sym.setBar(sym.bars(), bar);
   }
 
-  PluginFactory fac;
-  Plugin *plug = fac.load(QString("DBSymbol"));
+
+  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("Database")));
   if (! plug)
   {
     QStringList mess;
@@ -268,22 +260,11 @@ void YahooHistoryDownload::parseHistory (QByteArray &ba, QString &symbol, QStrin
     return;
   }
 
-  PluginData pd;
-  pd.command = QString("init");
-  if (! plug->command(&pd))
+  if (!plug->init())
     return;
 
-  pd.command = QString("transaction");
-  if (! plug->command(&pd))
+  if (!plug->setBars(&sym))
     return;
-
-  pd.command = QString("setBars");
-  pd.bars = &sym;
-  if (! plug->command(&pd))
-    return;
-
-  pd.command = QString("commit");
-  plug->command(&pd);
 }
 
 
@@ -402,8 +383,8 @@ void YahooHistoryDownload::parseToday (QByteArray &ba, QString &symbol, QString 
 
     sym.setBar(sym.bars(), bar);
 
-  PluginFactory fac;
-  Plugin *plug = fac.load(QString("DBSymbol"));
+
+  IDBPlugin *plug = dynamic_cast<IDBPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("Database")));
   if (! plug)
   {
     QStringList mess;
@@ -412,22 +393,11 @@ void YahooHistoryDownload::parseToday (QByteArray &ba, QString &symbol, QString 
     return;
   }
 
-  PluginData pd;
-  pd.command = QString("init");
-  if (! plug->command(&pd))
+  if (!plug->init())
     return;
 
-  pd.command = QString("transaction");
-  if (! plug->command(&pd))
+  if (!plug->setBars(&sym))
     return;
-
-  pd.command = QString("setBars");
-  pd.bars = &sym;
-  if (! plug->command(&pd))
-    return;
-
-  pd.command = QString("commit");
-  plug->command(&pd);
 }
 
 
@@ -439,28 +409,41 @@ int YahooHistoryDownload::downloadName (QString symbol, QString &name)
   url.append("&e=.csv");
 
   QNetworkAccessManager manager;
-  QNetworkReply *reply = manager.get(QNetworkRequest(QUrl(url)));
-  QEventLoop e;
-  QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), &e, SLOT(quit()));
-  e.exec();
+  manager.get(QNetworkRequest(QUrl(url)));
+  QObject::connect(&manager, SIGNAL(finished(QNetworkReply *)), this, SLOT(onName(QNetworkReply* pReply)));
 
   // parse the data and save quotes
-  QByteArray ba = reply->readAll();
+//  QByteArray ba = reply->readAll();
+//  QString s(ba);
+//  s = s.remove('"');
+//  s = s.remove(',');
+//  s = s.trimmed();
+//  if (s.isEmpty())
+//    return 0;
+
+//  name = s;
+
+  return 1;
+}
+
+void YahooHistoryDownload::stop()
+{
+  _stop = TRUE;
+  emit signalMessage(tr("Stopping download..."));
+}
+
+bool YahooHistoryDownload::onName(QNetworkReply* pReply)
+{
+  // parse the data and save quotes
+  QByteArray ba = pReply->readAll();
   QString s(ba);
   s = s.remove('"');
   s = s.remove(',');
   s = s.trimmed();
   if (s.isEmpty())
-    return 0;
+    return false;
 
-  name = s;
+  QString name = s;
 
-  return 1;
-}
-
-void
-YahooHistoryDownload::stop ()
-{
-  _stop = TRUE;
-  emit signalMessage(tr("Stopping download..."));
+  return true;
 }

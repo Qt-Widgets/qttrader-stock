@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,26 +26,23 @@
 #include <QStatusBar>
 #include <QInputDialog>
 #include <QToolButton>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
 #include <QProcess>
 
 #include "qttrader.h"
 #include "PluginFactory.h"
 #include "Setup.h"
 #include "Global.h"
-#include "LaunchPluginDialog.h"
 #include "Widget.h"
-#include "Doc.h"
 
-#include "../pics/qtstalker.xpm"
-#include "../pics/script.xpm"
-#include "../pics/new.xpm"
 
 QtTrader::QtTrader (QString session, QString plugin)
 {
-  _helpFile = "main.html";
   connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(shutDown()));
 
-  setWindowIcon(QIcon(qtstalker_xpm));
+  setWindowIcon(QIcon(":/icons/qttrader"));
 
   QCoreApplication::setOrganizationName("QtTrader");
 //  QCoreApplication::setOrganizationDomain("QtTrader.com");
@@ -66,53 +64,48 @@ QtTrader::QtTrader (QString session, QString plugin)
     QSettings settings(g_settings);
     settings.beginGroup(g_session);
     tplugin = settings.value("plugin").toString();
-    qDebug() << "Using value from settings";
+    qDebug() << "Using value from settings: " << tplugin;
   }
 
   loadPlugin(tplugin);
 }
 
-void
-QtTrader::shutDown ()
+void QtTrader::shutDown ()
 {
   save();
 }
 
-void
-QtTrader::createGUI ()
+void QtTrader::createGUI ()
 {
-  statusBar()->showMessage(tr("Ready"), 2000);
-  
-  // add buttons to statusbar
-  QToolButton *b = new QToolButton;
-  b->setIcon(QIcon(script_xpm));
-  b->setToolTip(tr("Load Plugin"));
-  b->setStatusTip(tr("Load Plugin"));
-  connect(b, SIGNAL(clicked()), this, SLOT(pluginDialog()));
-  statusBar()->addPermanentWidget(b, 0);
-  b->setMaximumSize(QSize(30, 30));
-  
-  b = new QToolButton;
-  b->setIcon(QIcon(new_xpm));
-  b->setToolTip(tr("New Session"));
-  b->setStatusTip(tr("New Session"));
-  connect(b, SIGNAL(clicked()), this, SLOT(newPluginDialog()));
-  statusBar()->addPermanentWidget(b, 0);
-  b->setMaximumSize(QSize(30, 30));
-  
-  b = new QToolButton;
-  b->setIcon(QIcon(script_xpm));
-  b->setToolTip(tr("Run Session"));
-  b->setStatusTip(tr("Run Session"));
-  connect(b, SIGNAL(clicked()), this, SLOT(runSession()));
-  statusBar()->addPermanentWidget(b, 0);
-  b->setMaximumSize(QSize(30, 30));
+  QMenuBar *menuBar = new QMenuBar();
+  setMenuBar(menuBar);
+  QMenu *menu = new QMenu("&Help");
 
-  setUnifiedTitleAndToolBarOnMac(TRUE);
+  QAction* a = new QAction(QIcon(":icons/info"), tr("&About"), this);
+  a->setIconVisibleInMenu(true);
+  connect(a, SIGNAL(activated()), this, SLOT(about()));
+  menu->addAction(a);
+  menuBar->addMenu(menu);
+
+  statusBar()->showMessage(tr("Ready"), 2000);
+
+  QSettings settings(g_settings);
+  settings.beginGroup("plugins");
+  QStringList value = settings.value("gui").toStringList();
+  settings.endGroup();
+
+  QToolBar* toolbar = new QToolBar();
+  for(int i = 0; i<value.size(); i++){
+      toolbar->addAction(value.at(i), this, SLOT(pluginLoader()));
+  }
+  toolbar->show();
+  toolbar->setObjectName("MainToolbar");
+
+  addToolBar(toolbar);
+  setUnifiedTitleAndToolBarOnMac(true);
 }
 
-void
-QtTrader::loadSettings ()
+void QtTrader::loadSettings ()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
@@ -130,8 +123,7 @@ QtTrader::loadSettings ()
   move(p);
 }
 
-void
-QtTrader::save()
+void QtTrader::save()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
@@ -142,135 +134,83 @@ QtTrader::save()
   settings.setValue("main_window_pos", pos());
 }
 
-void
-QtTrader::statusMessage (QString d)
+void QtTrader::statusMessage (QString d)
 {
   // update the status bar with a new message from somewhere
   statusBar()->showMessage(d, 0);
   wakeup();
 }
 
-void
-QtTrader::wakeup ()
+void QtTrader::wakeup ()
 {
   // force app to process the event que so we keep from any blocking
   qApp->processEvents();
 }
 
-void
-QtTrader::newPluginDialog ()
+void QtTrader::pluginLoader()
 {
-  LaunchPluginDialog *dialog = new LaunchPluginDialog(this);
-  dialog->show();
-}
-
-void
-QtTrader::pluginDialog ()
-{
-  QSettings settings(g_settings);
-  
-  settings.beginGroup("plugins");
-  QStringList l = settings.value("gui").toStringList();
-  settings.endGroup();
-  
-  settings.beginGroup(g_session);
-  QString plugin = settings.value("plugin").toString();
-
-  QInputDialog *dialog = new QInputDialog(this);
-  dialog->setComboBoxItems(l);
-  dialog->setComboBoxEditable(FALSE);
-  dialog->setLabelText(tr("Select plugin to open"));
-  dialog->setTextValue(plugin);
-  connect(dialog, SIGNAL(textValueSelected(QString)), this, SLOT(pluginDialog2(QString)));
-  connect(dialog, SIGNAL(finished(int)), dialog, SLOT(deleteLater()));
-  dialog->show();
-}
-
-void
-QtTrader::pluginDialog2 (QString d)
-{
+  QAction* pAction =  qobject_cast<QAction*>(QObject::sender());
+  QString name = pAction->text();
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
-  settings.setValue("plugin", d);
+  settings.setValue("plugin", name);
   settings.sync();
-  
-  loadPlugin(d);
+
+  loadPlugin(name);
 }
 
-void
-QtTrader::help ()
+int QtTrader::loadPlugin (QString name)
 {
-  Doc *doc = new Doc;
-  doc->showDocumentation(_helpFile);
-}
-
-int
-QtTrader::loadPlugin (QString d)
-{
-  if (d.isEmpty())
-    return 0;
-  
-  PluginFactory fac;
-  Plugin *plugin = fac.load(d);
-  if (! plugin)
+  if (name.isEmpty())
     return 0;
 
-  Widget *cw = (Widget *) centralWidget();
-  if (cw)
-  {
-    QToolBar *tb = cw->toolbar();
-    if (tb)
-    {
-      removeToolBar(cw->toolbar());
-      delete tb;
+  IGUIPlugin *pPlugin = 0;
+  pPlugin = dynamic_cast<IGUIPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(name));
+
+  if(pPlugin){
+      Widget* pWidget = pPlugin->create();
+      // if the plugin returns a widget, set it to main window
+      if(pWidget != NULL)
+      {
+        //remove old central Widget
+        Widget *cw = (Widget *) centralWidget();
+        if (cw)
+        {
+          QToolBar *tb = cw->toolbar();
+          if (tb)
+          {
+            removeToolBar(cw->toolbar());
+            delete tb;
+          }
+
+          delete cw;
+        }
+        //And then set up the new one
+        setCentralWidget(pWidget);
+        connect(pWidget, SIGNAL(signalMessage(QString)), this, SLOT(statusMessage(QString)));
+        connect(pWidget, SIGNAL(signalTitle(QString)), this, SLOT(setWindowTitle(QString)));
+
+        QToolBar *pToolBar = pWidget->toolbar();
+        if (pToolBar){
+          addToolBar(pToolBar);
+        }
     }
-    
-    delete cw;
   }
-
-  PluginData pd;
-  pd.command = QString("gui");
-  if (plugin->command(&pd))
-  {
-    setCentralWidget(pd.gui);
-    
-//    connect(_pluginGUI, SIGNAL(signalEnable(bool)), _toolbar, SLOT(setEnabled(bool)));
-    connect(pd.gui, SIGNAL(signalMessage(QString)), this, SLOT(statusMessage(QString)));
-    connect(pd.gui, SIGNAL(signalTitle(QString)), this, SLOT(setWindowTitle(QString)));
-    connect(pd.gui, SIGNAL(signalHelp()), this, SLOT(help()));
-    
-    QToolBar *tb = pd.gui->toolbar();
-    if (tb)
-      addToolBar(tb);
-  }
-
   return 1;
 }
 
-void
-QtTrader::runSession ()
-{
-  QSettings settings(g_settings);
-  QStringList l = settings.childGroups();
-  if (! l.size())
-    return;
-  
-  QInputDialog *dialog = new QInputDialog(this);
-  dialog->setComboBoxItems(l);
-  dialog->setComboBoxEditable(FALSE);
-  dialog->setLabelText(tr("Select session to run"));
-  dialog->setTextValue(l.at(0));
-  connect(dialog, SIGNAL(textValueSelected(QString)), this, SLOT(runSession2(QString)));
-  connect(dialog, SIGNAL(finished(int)), dialog, SLOT(deleteLater()));
-  dialog->show();
-}
-
-void
-QtTrader::runSession2 (QString session)
-{
-  QStringList tl;
-  tl << "QtTrader" << "-session" << session;
-  
-  if (! QProcess::startDetached(tl.join(" ")))
-    qDebug() << "QtTrader::runSession2: error launching process" << tl;
+/*
+ * Do not remove. To apply to the license agreement for the icons in this software,
+ * credits for the icons have to be displayed in the about dialog.
+ */
+void QtTrader::about(){
+  QMessageBox::information(this, "QtTrader!",
+    "QtTrader is a Open Source application for technical analysis of stocks.\n\n"\
+    "QtTrader is based in part on the work of Qwt project (http://qwt.sf.net).\n\n"\
+    "QtTrader is based in part on the work of TA-lib (http://ta-lib.org).\n\n"\
+    "QtTrader uses icons from the following sources under the Creative Commons licence (CC-BY-SA and/or CC-BY):\n"\
+    "http://www.aha-soft.com/\n"\
+    "http://www.gentleface.com/\n"\
+    "http://www.oxygen-icons.org/\n"\
+    "http://www.visualpharm.com/)");
 }

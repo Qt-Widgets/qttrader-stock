@@ -60,7 +60,7 @@ CDLDialog::CDLDialog (QWidget *p) : QDialog (p)
   // cancel button
   _cancelButton = _buttonBox->addButton(QDialogButtonBox::Cancel);
   _cancelButton->setText(tr("&Cancel"));
-  _cancelButton->setDefault(TRUE);
+  _cancelButton->setDefault(true);
   _cancelButton->setFocus();
 
   // help button

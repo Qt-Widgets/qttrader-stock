@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,16 +26,19 @@
 
 #include <QObject>
 
-#include "Plugin.h"
+#include "QtTraderPlugin.h"
 
-class YahooHistory : public QObject, public Plugin
+class YahooHistory : public QObject, public IGUIPlugin
 {
   Q_OBJECT
-  Q_INTERFACES(Plugin)
+    Q_INTERFACES(IGUIPlugin)
+    Q_INTERFACES(QtTraderPlugin)
 
   public:
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
-    int command (PluginData *);    
+    QString pluginName() { return QString("YahooHistory Downloader plugin");}
+    QString pluginVersion() { return QString("0.1");}
+    Entity* querySettings();
+    Widget* create();
 };
 
 #endif

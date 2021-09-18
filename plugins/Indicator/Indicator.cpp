@@ -24,38 +24,13 @@
 #include "Indicator.h"
 #include "PlotWidget.h"
 
-
-int
-Indicator::command (PluginData *pd)
-{
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "gui";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("gui");
-      rc = 1;
-      break;
-    case 1: // gui
-      pd->gui = new PlotWidget;
-      rc = 1;
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
+Entity* Indicator::querySettings(){
+    return new Entity();
 }
 
-int
-Indicator::draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *)
-{
-  return 0;
+Widget* Indicator::create(){
+    return new PlotWidget();
 }
 
-    
 // do not remove
-Q_EXPORT_PLUGIN2(indicator, Indicator);
+Q_EXPORT_PLUGIN2(indicator, Indicator)

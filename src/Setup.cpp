@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,15 +81,13 @@ void Setup::setupDirectories ()
 void Setup::setupDefaults ()
 {
   QSettings settings(g_settings);
-
   // plugin directory
 #ifdef DEBUG
-    QString s = QDir::currentPath();
+    QString s = QDir::currentPath().append("/plugins");
 #else
     QString s = INSTALL_PLUGIN_DIR;
 #endif
   settings.setValue("plugin_directory", s);
-
   settings.sync();
 }
 
@@ -100,36 +99,45 @@ void Setup::scanPlugins ()
 
   QDir dir = QDir(settings.value("plugin_directory").toString());
      
-  foreach (QString fileName, dir.entryList(QDir::Files))
-  {
-    QString name = fileName.right(fileName.length() - 3);
-    name.truncate(name.lastIndexOf(".", -1));
-    
-    QPluginLoader loader(dir.absoluteFilePath(fileName));
-    QObject *plugin = loader.instance();
-    if (! plugin)
+  foreach (QString dirName, dir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot))
+  {        
+    QDir dir2 = QDir(settings.value("plugin_directory").toString().append("/").append(dirName));
+    foreach (QString fileName, dir2.entryList(QDir::Files))
     {
-      qDebug() << "Setup::scanPlugins:" << loader.errorString();
-      continue;
+      QString name = fileName.right(fileName.length() - 3);
+      name.truncate(name.lastIndexOf(".", -1));
+
+      QPluginLoader loader(dir2.absoluteFilePath(fileName));
+      QObject *plugin = loader.instance();
+      if (! plugin)
+      {
+        qDebug() << "Setup::scanPlugins:" << loader.errorString();
+        continue;
+      }
+
+      QtTraderPlugin *plug = qobject_cast<QtTraderPlugin *>(plugin);
+      if (plug)
+      {
+        qDebug() << "Setup::scanPlugins:load: Found QtTraderPlugin!";
+
+        if(dynamic_cast<IGUIPlugin*>(plug)){
+            QStringList l = h.value("gui");
+            l << name;
+            h.insert("gui", l);
+        }
+        if(dynamic_cast<IIndicatorPlugin*>(plug)){
+            QStringList l = h.value("indicator");
+            l << name;
+            h.insert("indicator", l);
+        }
+        if(dynamic_cast<IMarkerPlugin*>(plug)){
+            QStringList l = h.value("marker");
+            l << name;
+            h.insert("marker", l);
+        }
+      }
     }
-    
-    Plugin *plug = qobject_cast<Plugin *>(plugin);
-    if (! plug)
-    {
-      qDebug() << "Setup::scanPlugins:load: error casting Plugin";
-      continue;
-    }
-    
-    PluginData pd;
-    pd.command = QString("type");
-    
-    if (! plug->command(&pd))
-      continue;
-    
-    QStringList l = h.value(pd.type);
-    l << name;
-    h.insert(pd.type, l);
-  }     
+  }
 
   settings.beginGroup("plugins");
   

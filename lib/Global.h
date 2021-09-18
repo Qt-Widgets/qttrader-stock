@@ -2,7 +2,7 @@
 #define GLOBAL_HPP
 
 #include <QString>
-#include "Bars.h"
+#include "bar/Bars.h"
 
 extern QString g_session;
 extern QString g_settings;

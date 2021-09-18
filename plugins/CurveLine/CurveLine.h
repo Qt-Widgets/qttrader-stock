@@ -24,22 +24,24 @@
 #define PLUGIN_CURVE_LINE_H
 
 #include <QObject>
+#include "QtTraderPlugin.h"
 
-#include "Plugin.h"
-
-class CurveLine : public QObject, public Plugin
+class CurveLine : public QObject, public ICurvePlugin
 {
   Q_OBJECT
-  Q_INTERFACES(Plugin)
+    Q_INTERFACES(ICurvePlugin)
+    Q_INTERFACES(QtTraderPlugin)
 
   public:
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
-    int command (PluginData *);    
 
-    int info (PluginData *);
-    int scalePoint (PluginData *);
-    int highLowRange (PluginData *);
-    int fill (PluginData *);
+    QString pluginName() { return QString("Curve line");}
+    QString pluginVersion() { return QString("0.1");}
+
+    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRectF &, void *);
+    int info (Curve *curve, QStringList &info, int index);
+    int scalePoint (Curve *curve, QColor &color, double &value, int index);
+    int highLow (Curve *curve, double &high, double &low, int start, int end);
+    int fill (Curve *curve, QString key,QString,QString,QString,QColor);
 };
 
 #endif

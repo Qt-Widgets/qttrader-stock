@@ -20,7 +20,6 @@
  */
 
 #include "MarkerSellDialog.h"
-#include "Doc.h"
 #include "Global.h"
 
 #include <QtDebug>
@@ -73,13 +72,6 @@ MarkerSellDialog::done ()
   saveSettings();
   save();
   accept();
-}
-
-void
-MarkerSellDialog::help ()
-{
-  Doc *doc = new Doc;
-  doc->showDocumentation(_helpFile);
 }
 
 void

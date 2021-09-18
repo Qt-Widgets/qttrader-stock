@@ -24,8 +24,7 @@
 #include "PluginFactory.h"
 #include "IndicatorDialog.h"
 #include "Global.h"
-#include "BarType.h"
-#include "PluginData.h"
+#include "bar/BarType.h"
 #include <qwt_plot_zoomer.h>
 #include <qwt_plot_magnifier.h>
 
@@ -43,26 +42,32 @@ PlotWidget::PlotWidget ()
 {
   first = true;
   g_symbol = new Bars;
-  
+
   QVBoxLayout *vbox = new QVBoxLayout;
   vbox->setSpacing(0);
   //Insert a small frame.
   vbox->setMargin(5);
   setLayout(vbox);
   
+
+  _toolbarWidget = new ToolbarWidget();
+  vbox->addWidget(_toolbarWidget);
+
+  connect(_toolbarWidget, SIGNAL(signalSelected()), this, SLOT(refresh()));
+  connect(_toolbarWidget, SIGNAL(signalIndicator()), this, SLOT(indicatorDialog()));
+  connect(_toolbarWidget, SIGNAL(signalLength()), this, SLOT(setBarLength()));
+  connect(_toolbarWidget, SIGNAL(signalRemovePlot()), this, SLOT(removeIndicator()));
+  connect(_toolbarWidget, SIGNAL(signalEditPlot()), this, SLOT(editIndicator()));
+
   // chart splitter
   _csplitter = new QSplitter(Qt::Vertical, 0);
-  _csplitter->setOpaqueResize(FALSE);
+  _csplitter->setOpaqueResize(false);
   vbox->addWidget(_csplitter);
-  
-  _controlWidget = new ControlWidget;
-  connect(_controlWidget, SIGNAL(signalSelected()), this, SLOT(refresh()));
+
+  _controlWidget = new ControlWidget();
+
   connect(_controlWidget, SIGNAL(signalRefresh()), this, SLOT(refresh()));
-  connect(_controlWidget, SIGNAL(signalIndicator()), this, SLOT(indicatorDialog()));
-  connect(_controlWidget, SIGNAL(signalLength()), this, SLOT(setBarLength()));
   connect(_controlWidget, SIGNAL(signalScrollBarChanged(int)), this, SLOT(scrollBarChanged(int)));
-  connect(_controlWidget, SIGNAL(signalRemovePlot()), this, SLOT(removeIndicator()));
-  connect(_controlWidget, SIGNAL(signalEditPlot()), this, SLOT(editIndicator()));
   vbox->addWidget(_controlWidget);
 
   // fix for messed up plot screen if we draw the plot before it has become visible
@@ -80,19 +85,14 @@ PlotWidget::~PlotWidget ()
 
 void PlotWidget::addPlot (QString plugin, int row, QString name)
 {
-  PluginFactory fac;
-  Plugin *plug = fac.load(plugin);
+  qWarning() << "PlotWidget::addPlot - " << name;
+  IIndicatorPlugin *plug = dynamic_cast<IIndicatorPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(plugin));
   if (! plug)
     return;
 
-  PluginData pd;
-  pd.command = QString("settings");
-  if (! plug->command(&pd))
-    return;
-  
-  Entity *settings = pd.settings;
+  Entity *settings = plug->querySettings();
+
   settings->setName(name);
-  
   _settings.insert(name, settings);
   
   addPlotSettings(settings);
@@ -103,11 +103,8 @@ void PlotWidget::addPlot (QString plugin, int row, QString name)
 
   Plot *plot = new Plot(name, 0);
   plot->setMinimumHeight(30);
-  plot->high = (int)pd.high;
-  plot->low = (int)pd.low;
 
   _plots.insert(name, plot);
-  
   _csplitter->insertWidget(row, plot);
 
   plot->setStartIndex(_controlWidget->scrollBarValue());
@@ -162,16 +159,19 @@ void PlotWidget::scrollBarChanged (int d)
 void PlotWidget::setPanScrollBarSize ()
 {
   int range =  _controlWidget->getRange();
-  bool flag = FALSE;
+  bool flag = false;
   int page = 0;
   int max = 0;
-
+  int min = 0;
+  int end, start;
   QHashIterator<QString, Plot *> it(_plots);
   while (it.hasNext())
   {
     it.next();
     Plot *plot = it.value();
-
+    PlotSettings pPlotSettings = plot->getPlotSettings();
+    start = pPlotSettings.startPos;
+    end = pPlotSettings.endPos;
     int tpage, tmax;
     plot->panScrollBarSize(tpage, tmax);
     
@@ -179,7 +179,7 @@ void PlotWidget::setPanScrollBarSize ()
     {
       page = tpage;
       max = tmax;
-      flag = TRUE;
+      flag = true;
     }
     else
     {
@@ -188,11 +188,14 @@ void PlotWidget::setPanScrollBarSize ()
       if (tmax > max)
         max = tmax;
     }
+//    max = end;
+//    min = start;
   }
 //  qDebug() << "range : " << range;
 //  qDebug() << "(page + max) : " << (page + max);
+  qDebug() << "start " << start << "end "<< end;
    max = (max + page) - range;
-  _controlWidget->setPan(0, max, page);
+  _controlWidget->setPan(end-start, max, page);
 }
 
 void PlotWidget::indicatorDialog ()
@@ -214,7 +217,7 @@ void PlotWidget::refresh ()
 
   DataBase db(g_session);
 
-  loadSymbolData();
+  bool newData = loadSymbolData();
 
   //Save all markers before clearing the plot
   saveMarkers(db);
@@ -224,11 +227,7 @@ void PlotWidget::refresh ()
   // refresh dates
   emit signalSetDates();
 
-  PluginFactory fac;
-
-  Bars sym = _controlWidget->currentSymbol();
-
-
+  Bars sym = _toolbarWidget->currentSymbol();
 
   //Plot all Indicators
   QHashIterator<QString, Plot *> it(_plots);
@@ -236,30 +235,28 @@ void PlotWidget::refresh ()
   {
     it.next();
     Plot *plot = it.value();
-    Entity *e = _settings.value(it.key());
-    if (! e)
+    Entity *pEntity = _settings.value(it.key());
+    if (! pEntity)
       continue;
 
-    QVariant *plugin = e->get(QString("plugin"));
+    QVariant *plugin = pEntity->get(QString("plugin"));
     if (! plugin)
       continue;
-    
-    Plugin *iplug = fac.load(plugin->toString());
-    if (! iplug)
+
+    IIndicatorPlugin *pPlugin = dynamic_cast<IIndicatorPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(plugin->toString()));
+    if (! pPlugin)
       continue;
 
-    PluginData tpd;
-    tpd.command = QString("runIndicator");
-    tpd.settings = e;
-    
-    if (! iplug->command(&tpd))
-      continue;
+    QList<Curve*> curves = pPlugin->runIndicator(pEntity);
+    if(newData){
+      pPlugin->newDataLoaded();
+    }
 
-    for (int tpos = 0; tpos < tpd.curves.size(); tpos++)
-      plot->setCurve(tpd.curves.at(tpos));
+    for (int tpos = 0; tpos < curves.size(); tpos++)
+      plot->setCurve(curves.at(tpos));
 
-    for (int tpos = 0; tpos < tpd.markers.size(); tpos++)
-      plot->setMarker(tpd.markers.at(tpos));
+//    for (int tpos = 0; tpos < tpd.markers.size(); tpos++)
+//      plot->setMarker(tpd.markers.at(tpos));
 
   }
 
@@ -272,7 +269,7 @@ void PlotWidget::refresh ()
   setPanScrollBarSize();
   
   QStringList tl;
-  tl << "QtTrader" << "-" << sym.symbol() << "(" + sym.name() + ")" << _controlWidget->lengthText();
+  tl << "QtTrader" << "-" << sym.symbol() << "(" + sym.name() + ")" << _toolbarWidget->lengthText();
   emit signalTitle(tl.join(" "));
 }
 
@@ -296,21 +293,17 @@ void PlotWidget::editIndicator2 (QString name)
   QVariant *plugin = e->get(QString("plugin"));
   if (! plugin)
     return;
-  
-  PluginFactory fac;
-  Plugin *plug = fac.load(plugin->toString());
-  if (! plug)
+
+  IIndicatorPlugin *pPlugin = dynamic_cast<IIndicatorPlugin*>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(plugin->toString()));
+  if (! pPlugin)
     return;
 
-  PluginData pd;
-  pd.command = QString("dialog");
-  pd.dialogParent = this;
-  pd.settings = e;
-  if (! plug->command(&pd))
+  QDialog* pDialog = pPlugin->dialog(this, e);
+  if (!pDialog)
     return;
   
-  connect(pd.dialog, SIGNAL(accepted()), this, SLOT(refresh()));
-  pd.dialog->show();
+  connect(pDialog, SIGNAL(accepted()), this, SLOT(refresh()));
+  pDialog->show();
 }
 
 void PlotWidget::removeIndicator ()
@@ -344,7 +337,7 @@ void PlotWidget::removeIndicator2 (QString name)
 
 void PlotWidget::setBarLength ()
 {
-  emit signalBarLength(_controlWidget->length());
+  emit signalBarLength(_toolbarWidget->length());
   refresh();
 }
 
@@ -508,7 +501,7 @@ void PlotWidget::saveMarkers (DataBase &db)
       db.set(e);
       db.commit();
       
-      m->setModified(FALSE);
+      m->setModified(false);
     }
   }
 }
@@ -548,7 +541,8 @@ void PlotWidget::loadMarkers (DataBase &db)
     m->setID(names.at(pos));
     
     Entity *e = m->settings();
-    
+    if(!e)
+        continue;
     e->setName(names.at(pos));
     db.get(e);
 
@@ -567,9 +561,9 @@ void PlotWidget::deleteMarkers (QStringList l)
 void
 PlotWidget::addPlotSettings (Entity *e)
 {
-  e->set(QString("date"), new QVariant(TRUE));
-  e->set(QString("grid"), new QVariant(TRUE));
-  e->set(QString("info"), new QVariant(TRUE));
+  e->set(QString("date"), new QVariant(true));
+  e->set(QString("grid"), new QVariant(true));
+  e->set(QString("info"), new QVariant(true));
   e->set(QString("row"), new QVariant(0));
 }
 
@@ -584,37 +578,30 @@ PlotWidget::addPlotSettings (Entity *e)
   */
 bool PlotWidget::loadSymbolData() {
 
-    Bars sym = _controlWidget->currentSymbol();
+    Bars sym = _toolbarWidget->currentSymbol();
 
     //Don't load new data unless symbol or barlength changed
-    if(!(g_symbol->symbol() != sym.symbol() || g_symbol->barLength() != _controlWidget->length()))
+    if(!(g_symbol->symbol() != sym.symbol() || g_symbol->barLength() != _toolbarWidget->length()))
         return false;
 
     if (! _plots.size())
       return false;
 
     // load fresh symbol data
-    if (! _controlWidget->count())
+    if (! _toolbarWidget->count())
       return false;
 
-    PluginFactory fac;
-    Plugin *qplug = fac.load(QString("DBSymbol"));
+    IDBPlugin *qplug = dynamic_cast<IDBPlugin *>(((PluginFactory*)PluginFactory::getPluginFactory())->loadPlugin(QString("Database")));
 
     if (! qplug)
       return false;
 
     g_symbol->clear();
     g_symbol->setSymbol(sym.symbol());
-    g_symbol->setBarLength(_controlWidget->length());
+    g_symbol->setBarLength(_toolbarWidget->length());
     g_symbol->setPlotRange(_controlWidget->getRange());
 
-    PluginData pd;
-    pd.command = QString("getBars");
-    pd.bars = g_symbol;
-
-
-
-    if (! qplug->command(&pd))
+    if (! qplug->getBars(g_symbol))
       return false;
 
     return true;
@@ -623,7 +610,7 @@ bool PlotWidget::loadSymbolData() {
 void PlotWidget::updateScrollBars(){
 
     if(first){
-        _controlWidget->setZoom(0,g_symbol->bars(),0);
+        _controlWidget->setZoom(2,g_symbol->bars(),0);
         first = false;
     }else{
          _controlWidget->resizeZoom(g_symbol->bars());

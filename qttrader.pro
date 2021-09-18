@@ -16,6 +16,7 @@
     exists(/usr/include/ta-lib) {
       INCLUDEPATH += /usr/include/ta-lib
     }
+    INCLUDEPATH += /usr/include/qwt
   }
 
   freebsd-g++ {
@@ -110,28 +111,22 @@ SUBDIRS += lib
 SUBDIRS += src
 
 # compile plugins
-SUBDIRS += plugins/CDL
-SUBDIRS += plugins/CSV
-SUBDIRS += plugins/CurveHistogram
+#SUBDIRS += plugins/CDL
 SUBDIRS += plugins/CurveLine
+SUBDIRS += plugins/CurveHistogram
 SUBDIRS += plugins/CurveOHLC
-SUBDIRS += plugins/DBStock
-SUBDIRS += plugins/DBSymbol
-SUBDIRS += plugins/Group
+SUBDIRS += plugins/Database
 SUBDIRS += plugins/Indicator
-SUBDIRS += plugins/MACD
 SUBDIRS += plugins/MarkerBuy
-SUBDIRS += plugins/MarkerHLine
-SUBDIRS += plugins/MarkerRetracement
 SUBDIRS += plugins/MarkerSell
-SUBDIRS += plugins/MarkerText
 SUBDIRS += plugins/MarkerTLine
-SUBDIRS += plugins/MarkerVLine
-SUBDIRS += plugins/OHLC
-SUBDIRS += plugins/STOCHF
-SUBDIRS += plugins/STOCHS
+SUBDIRS += plugins/MarkerHLine
 SUBDIRS += plugins/Volume
 SUBDIRS += plugins/YahooHistory
+
+SUBDIRS += plugins/autoTrader
+SUBDIRS += plugins/NetfondsHistory
+SUBDIRS += plugins/Nordnet
 
 !win32 {
   # install docs and i18n

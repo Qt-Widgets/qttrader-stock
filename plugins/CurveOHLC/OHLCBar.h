@@ -27,7 +27,7 @@
 
 #include <QColor>
 
-#include "Bar.h"
+#include "bar/Bar.h"
 
 class OHLCBar : public Bar
 {

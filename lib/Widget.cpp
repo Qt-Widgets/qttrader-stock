@@ -28,26 +28,22 @@ Widget::Widget ()
   _toolbar = 0;
 }
 
-void
-Widget::message (QString d)
+void Widget::message (QString d)
 {
   emit signalMessage(d);
 }
 
-void
-Widget::enable (bool d)
+void Widget::enable (bool d)
 {
   emit signalEnable(d);
 }
 
-void
-Widget::setToolBar (QToolBar *d)
+void Widget::setToolBar (QToolBar *d)
 {
   _toolbar = d;
 }
 
-QToolBar *
-Widget::toolbar ()
+QToolBar * Widget::toolbar ()
 {
   return _toolbar;
 }

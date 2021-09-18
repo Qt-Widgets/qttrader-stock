@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,37 +26,20 @@
 #include "YahooHistoryDownload.h"
 #include "DateRange.h"
 #include "GUIWidget.h"
+#include "dialog.h"
 
 
-int
-YahooHistory::command (PluginData *pd)
+Widget* YahooHistory::create()
 {
-  int rc = 0;
+  GUIWidget* pGui = new GUIWidget();
+  pGui->showNormal();
 
-  QStringList cl;
-  cl << "type" << "gui";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("gui");
-      rc = 1;
-      break;
-    case 1: // gui
-      pd->gui = new GUIWidget;
-      rc = 1;
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
+    return NULL; //new GUIWidget();
 }
 
-int
-YahooHistory::draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *)
+Entity* YahooHistory::querySettings()
 {
-  return 0;
+    return new Entity();
 }
 
 // do not remove

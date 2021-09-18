@@ -479,12 +479,12 @@ CDL::settings (PluginData *pd)
   command->set(QString("method1"), new QVariant(tc.indexToString(TypeCandle::_HARAMI)));
   command->set(QString("bullColor1"), new QVariant(QString("green")));
   command->set(QString("bearColor1"), new QVariant(QString("red")));
-  command->set(QString("show1"), new QVariant(TRUE));
+  command->set(QString("show1"), new QVariant(true));
 
   command->set(QString("method2"), new QVariant(tc.indexToString(TypeCandle::_HARAMI)));
   command->set(QString("bullColor2"), new QVariant(QString("green")));
   command->set(QString("bearColor2"), new QVariant(QString("red")));
-  command->set(QString("show2"), new QVariant(TRUE));
+  command->set(QString("show2"), new QVariant(true));
 
   pd->settings = command;
   
@@ -492,7 +492,7 @@ CDL::settings (PluginData *pd)
 }
 
 int
-CDL::draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *)
+CDL::draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRectF &, void *)
 {
   return 0;
 }

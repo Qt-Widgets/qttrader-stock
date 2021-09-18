@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/forms">
+        <file alias="tabwidget">tabwidget.ui</file>
+        <file alias="login">logindialog.ui</file>
+    </qresource>
+</RCC>

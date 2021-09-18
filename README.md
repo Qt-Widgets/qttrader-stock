@@ -12,7 +12,18 @@ Dependencies
 1. Linux
 2. Qt 4.5		http://qt-project.org/downloads
 3. TA-lib 0.3.0		http://www.ta-lib.org/
-4. QWT 5.2.x		http://sourceforge.net/projects/qwt/
+4. QWT 6.0.0		http://sourceforge.net/projects/qwt/
+
+Please not that is have been reported that QWT breaks API between minor revisions. Use Exactly 6.0.0 (Installable in Ubuntu 12.10)
+
+For the Nordnet plug-in additional dependencies exist
+
+1. qjson
+2. openssl
+
+Both is installable with the synaptic package manager in Ubuntu 12.10
+
+To be able to use the nordnet plugin you will have to get an account at Nordnet. For more info and details see, https://api.test.nordnet.se/projects/api 
 
 
 =======
@@ -33,3 +44,9 @@ FAQ
 
 Q: I get "qttrader: error while loading shared libraries: libQTTRADER.so.0: cannot open shared object file: No such file or directory" when i try to start qttrader
 A: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+
+Q: qwt_plot.h is not found when I am building in QtCreator
+A: Current project setup does not work in QtCreator out-of-the-box. Under Projects->Build Settings remove the QMake build step and add a custom Process step: ./configure
+
+Q: Debuging in QtCreator creates strange results!
+A: Make sure that Working directory is pointing to the latest build. Under Projects->Run Settings add a deploy step "Make install" and change Working directory to "~./qttrader_debug"

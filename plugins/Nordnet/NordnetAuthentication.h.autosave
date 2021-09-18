@@ -1,0 +1,64 @@
+#ifndef NORDNETAUTHENTICATION_H
+#define NORDNETAUTHENTICATION_H
+
+#include "Session.h"
+#include <QNetworkReply>
+#include <string>
+#include <curl/curl.h>
+
+
+class QByteArray;
+class QString;
+class QAuthenticator;
+class QNetworkAccessManager;
+class QSslError;
+class QNetworkReply;
+
+class NordnetAuthentication : public QObject {
+
+    Q_OBJECT
+
+signals:
+    void answer(QString);
+    void answer(QVariant);
+
+public slots:
+    void finished(QNetworkReply*);
+    void loginFinished(QNetworkReply* reply);
+    void parseLogout(QNetworkReply* array);
+    void error(QNetworkReply::NetworkError);
+    void sslErrors();
+    void slotAll();
+    void test();
+
+    void getAccounts();
+
+public:
+  void login(QString user, QString password);
+  void logout();
+  void deleteRequest(QString post);
+  void putRequest(QString post, QString data);
+  void postRequest(QString post, QString data);
+  void getRequest(QString get);
+
+  virtual ~NordnetAuthentication();
+  NordnetAuthentication();
+
+private:
+  QString timestamp_in_ms();
+  unsigned char* encrypt(const QString &s, unsigned char *encrypted);
+  void parseAccountSummary(const QByteArray &array);
+  void parseAccountLedgers(const QByteArray &array);
+
+  QVariant parseReply(QNetworkReply *reply);
+
+  QNetworkRequest authenticateHeader(QNetworkRequest header);
+  QNetworkRequest getHeader();
+
+  QNetworkAccessManager * m_pNam;
+  QAuthenticator* m_pAuthenticator;
+
+  Session* m_pSession;
+};
+
+#endif // NORDNETAUTHENTICATION_H

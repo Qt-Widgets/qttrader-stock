@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +21,6 @@
  */
 
 #include "MarkerHLineDialog.h"
-#include "Doc.h"
 #include "Global.h"
 
 #include <QtDebug>
@@ -67,30 +67,20 @@ MarkerHLineDialog::MarkerHLineDialog (QWidget *p) : QDialog (p)
   connect(b, SIGNAL(clicked()), this, SLOT(help()));
 }
 
-void
-MarkerHLineDialog::done ()
+void MarkerHLineDialog::done ()
 {
   saveSettings();
   save();
   accept();
 }
 
-void
-MarkerHLineDialog::help ()
-{
-  Doc *doc = new Doc;
-  doc->showDocumentation(_helpFile);
-}
-
-void
-MarkerHLineDialog::cancel ()
+void MarkerHLineDialog::cancel ()
 {
   saveSettings();
   reject();
 }
 
-void
-MarkerHLineDialog::loadSettings ()
+void MarkerHLineDialog::loadSettings ()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
@@ -104,8 +94,7 @@ MarkerHLineDialog::loadSettings ()
     move(p);
 }
 
-void
-MarkerHLineDialog::saveSettings ()
+void MarkerHLineDialog::saveSettings ()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
@@ -113,8 +102,7 @@ MarkerHLineDialog::saveSettings ()
   settings.setValue("markerh_line_dialog_pos", pos());
 }
 
-void
-MarkerHLineDialog::setGUI (Entity *settings)
+void MarkerHLineDialog::setGUI (Entity *settings)
 {
   _settings = settings;
 

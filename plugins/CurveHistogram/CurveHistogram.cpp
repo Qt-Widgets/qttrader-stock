@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,47 +25,11 @@
 
 #include "CurveHistogram.h"
 #include "CHBar.h"
-#include "Strip.h"
-#include "Curve.h"
-#include "CurveHistogramType.h"
+#include "curve/Curve.h"
+//#include "CurveHistogramType.h"
 #include "Global.h"
 
-
-int
-CurveHistogram::command (PluginData *pd)
-{
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "info" << "scalePoint" << "highLowRange" << "fill";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("curve");
-      rc = 1;
-      break;
-    case 1: // info
-      rc = info(pd);
-      break;
-    case 2: // scalePoint
-      rc = scalePoint(pd);
-      break;
-    case 3: // highLowRange
-      rc = highLowRange(pd);
-      break;
-    case 4: // fill
-      rc = fill(pd);
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
-}
-
-int
-CurveHistogram::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRect &, void *c)
+int CurveHistogram::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &, void *c)
 {
   Curve *curve = (Curve *) c;
   QwtScaleDiv *sd = curve->plot()->axisScaleDiv(QwtPlot::xBottom);
@@ -109,55 +74,34 @@ CurveHistogram::draw (QPainter *painter, const QwtScaleMap &xMap, const QwtScale
   return 1;
 }
 
-int
-CurveHistogram::info (PluginData *pd)
+int CurveHistogram::info(Curve *curve, QStringList &info, int index)
 {
-  if (! pd->data)
-    return 0;
-  
-  Curve *curve = (Curve *) pd->data;
-  
-  CHBar *bar = (CHBar *) curve->bar(pd->index);
+  CHBar *bar = (CHBar *) curve->bar(index);
   if (! bar)
     return 0;
-  
-  Strip strip;
-  QString d;
-  strip.strip(bar->value(), 4, d);
-  
-  pd->info << curve->label() + "=" + d;
+
+  QString d = QString::number(bar->value(), 'f', 2);
+  info << curve->label() + "=" + d;
 
   return 1;
 }
 
-int
-CurveHistogram::scalePoint (PluginData *pd)
+int CurveHistogram::scalePoint (Curve *curve, QColor &color, double &value, int index)
 {
-  if (! pd->data)
-    return 0;
-  
-  Curve *curve = (Curve *) pd->data;
-  
-  CHBar *bar = (CHBar *) curve->bar(pd->index - 1); // -1 fix for alignment issue
+  CHBar *bar = (CHBar *) curve->bar(index - 1); // -1 fix for alignment issue
   if (! bar)
     return 0;
 
-  pd->value = bar->value();
-  pd->color = bar->color();
+  value = bar->value();
+  color = bar->color();
 
   return 1;
 }
 
-int
-CurveHistogram::highLowRange (PluginData *pd)
+int CurveHistogram::highLow(Curve *curve, double &high, double &low, int start, int end)
 {
-  if (! pd->data)
-    return 0;
-  
-  Curve *curve = (Curve *) pd->data;
-  
   int flag = 0;
-  for (int pos = pd->start; pos <= pd->end; pos++)
+  for (int pos = start; pos <= end; pos++)
   {
     CHBar *r = (CHBar *) curve->bar(pos);
     if (! r)
@@ -165,37 +109,35 @@ CurveHistogram::highLowRange (PluginData *pd)
 
     if (! flag)
     {
-      pd->high = r->base();
-      pd->low = r->base();
+      high = r->base();
+      low = r->base();
       
-      if (r->value() > pd->high)
-        pd->high = r->value();
-      if (r->value() < pd->low)
-        pd->low = r->value();
+      if (r->value() > high)
+        high = r->value();
+      if (r->value() < low)
+        low = r->value();
 
       flag++;
     }
     else
     {
-      if (r->base() > pd->high)
-        pd->high = r->base();
-      if (r->base() < pd->low)
-        pd->low = r->base();
+      if (r->base() > high)
+        high = r->base();
+      if (r->base() < low)
+        low = r->base();
 
-      if (r->value() > pd->high)
-        pd->high = r->value();
-      if (r->value() < pd->low)
-        pd->low = r->value();
+      if (r->value() > high)
+        high = r->value();
+      if (r->value() < low)
+        low = r->value();
     }
   }
-
   return flag;
 }
 
-int
-CurveHistogram::fill (PluginData *pd)
+int CurveHistogram::fill (Curve *curve, QString key,QString,QString,QString,QColor color)
 {
-  if (pd->key1.isEmpty())
+  if (key.isEmpty())
     return 0;
   
   if (! g_symbol)
@@ -203,11 +145,6 @@ CurveHistogram::fill (PluginData *pd)
     qDebug() << "CurveHistogram::fill: bars missing";
     return 0;
   }
-
-  if (! pd->data)
-    return 0;
-  
-  Curve *curve = (Curve *) pd->data;
   
   QList<int> keys = g_symbol->keys();
 
@@ -216,10 +153,10 @@ CurveHistogram::fill (PluginData *pd)
     CBar *r = g_symbol->bar(keys.at(pos));
     
     double v = 0.0;
-    if (! r->get(pd->key1, v))
+    if (! r->get(key, v))
       continue;
 
-    curve->setBar(keys.at(pos), new CHBar(pd->color, 0.0, v));
+    curve->setBar(keys.at(pos), new CHBar(color, 0.0, v));
   }
 
   return 1;

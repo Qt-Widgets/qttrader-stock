@@ -1,0 +1,28 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="add">icons/add1.png</file>
+        <file alias="config">icons/configure.png</file>
+        <file alias="app">icons/application.png</file>
+        <file alias="qttrader">icons/stockmarket.png</file>
+        <file alias="search">icons/search.png</file>
+        <file alias="back">icons/back.png</file>
+        <file alias="forward">icons/forward.png</file>
+        <file alias="edit">icons/edit.png</file>
+        <file alias="delete">icons/close.png</file>
+        <file alias="folder">icons/folder.png</file>
+        <file alias="calendar">icons/calendar.png</file>
+        <file alias="copy">icons/copy.png</file>
+        <file alias="cut">icons/cut.png</file>
+        <file alias="process">icons/wheel.png</file>
+        <file alias="info">icons/info.png</file>
+        <file alias="grid">icons/grid.png</file>
+        <file alias="sell">icons/stock_down.png</file>
+        <file alias="buy">icons/stock_up.png</file>
+        <file alias="text">icons/text.png</file>
+        <file>icons/trend.png</file>
+        <file alias="fib">icons/fib.png</file>
+        <file alias="hor">icons/horizontal.png</file>
+        <file alias="ver">icons/vertical.png</file>
+        <file alias="trend">icons/trend2.png</file>
+    </qresource>
+</RCC>

@@ -20,7 +20,7 @@
  */
 
 #include "LengthButton.h"
-#include "BarLength.h"
+#include "bar/BarLength.h"
 
 #include <QtDebug>
 #include <QMenu>
@@ -50,7 +50,7 @@ LengthButton::createGUI ()
   setToolTip(tr("Bar Length"));
   setStatusTip(tr("Bar Length"));
   setMenu(menu);
-  setMaximumSize(QSize(30, 30));
+  setMaximumSize(QSize(100, 30));
 }
 
 void

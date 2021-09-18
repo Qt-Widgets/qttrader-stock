@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2007 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,50 +41,58 @@ GUIWidget::~GUIWidget ()
   saveSettings();
 }
 
-void
-GUIWidget::createGUI ()
+void GUIWidget::createGUI ()
 {
   _timer = new QTimer(this);
   connect(_timer, SIGNAL(timeout()), this, SLOT(updateGUI()));
 
-  QVBoxLayout *vbox = new QVBoxLayout;
+  QVBoxLayout* vbox = new QVBoxLayout;
   vbox->setSpacing(2);
   vbox->setMargin(5);
   setLayout(vbox);
   
-  QFormLayout *form = new QFormLayout;
+  QHBoxLayout* form = new QHBoxLayout;
   form->setSpacing(2);
-  form->setMargin(0);
+  form->setContentsMargins(15,0,0,0);
   vbox->addLayout(form);
   
-  // templates
-  _templates = new QComboBox;
-  form->addRow (tr("Templates"), _templates);
-  
-  // range
-  DateRange dr;
-  _range = new QComboBox;
-  _range->addItems(dr.list());
-  _range->setCurrentIndex(5);
-  form->addRow (tr("Range"), _range);
-  
-  // symbol file
-  _symbolButton = new FileButton(0);
-  connect(_symbolButton, SIGNAL(signalSelectionChanged(QStringList)), this, SLOT(buttonStatus()));
-  _symbolButton->setFiles(QStringList() << "/tmp/yahoo_symbols");
-  form->addRow (tr("Symbol File"), _symbolButton);
-  
+  m_pAddRowButton = new QPushButton();
+  m_pAddRowButton->setText("Add Stock");
+  form->addWidget(m_pAddRowButton);
+  form->addStretch();
+
+  connect(m_pAddRowButton, SIGNAL(clicked()), this, SLOT(addTableRow()));
+
   // log
   QGroupBox *gbox = new QGroupBox;
-  gbox->setTitle(tr("Log"));
   vbox->addWidget(gbox);
 
-  QVBoxLayout *tvbox = new QVBoxLayout;
+  QHBoxLayout *tvbox = new QHBoxLayout;
   gbox->setLayout(tvbox);
-  
+  QSplitter* pSplitView = new QSplitter();
+  tvbox->addWidget(pSplitView);
+
+  // Table
+  m_pTableWidget = new QTableWidget();
+  m_pTableWidget->setColumnCount(5);
+  m_pTableWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(m_pTableWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequseted(QPoint)));
+
+  QStringList stringList;
+  stringList.append("Enabled");
+  stringList.append("Ticker");
+  stringList.append("Start Date");
+  stringList.append("End Date");
+  stringList.append("Last Update");
+  m_pTableWidget->setHorizontalHeaderLabels(stringList);
+  m_pTableWidget->resize(10,m_pTableWidget->height());
+  m_pTableWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  pSplitView->addWidget(m_pTableWidget);
+
   _log = new QTextEdit;
   _log->setReadOnly(TRUE);
-  tvbox->addWidget(_log);
+  _log->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  pSplitView->addWidget(_log);
 
   // buttonbox
   QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Help);
@@ -91,87 +100,97 @@ GUIWidget::createGUI ()
 
   // ok button
   _okButton = bb->addButton(QDialogButtonBox::Ok);
-  _okButton->setText(tr("&OK"));
+  _okButton->setText(tr("&Download"));
   connect(_okButton, SIGNAL(clicked()), this, SLOT(downloadHistory()));
-
-  // cancel button
-  _cancelButton = bb->addButton(QDialogButtonBox::Cancel);
-  _cancelButton->setText(tr("&Cancel"));
-  _cancelButton->setDefault(TRUE);
-  _cancelButton->setFocus();
-  _cancelButton->setEnabled(FALSE);
-
-  // help button
-  QPushButton *b = bb->button(QDialogButtonBox::Help);
-  b->setText(tr("&Help"));
-  connect(b, SIGNAL(clicked()), this, SIGNAL(signalHelp()));
 }
 
-void
-GUIWidget::downloadHistory ()
+void GUIWidget::contextMenuRequseted(QPoint point)
+{
+  QMenu* pMenu = new QMenu();
+  QAction* pDeleteAction = new QAction("Delete ticker", this);
+  pMenu->addAction(pDeleteAction);
+  QAction* selectedItem = pMenu->exec(m_pTableWidget->viewport()->mapToGlobal(point));
+  if (selectedItem)
+  {
+    int row = m_pTableWidget->rowAt(point.y());
+    m_pTableWidget->removeRow(row);
+  }
+}
+
+void GUIWidget::addTableRow()
+{
+  if(m_pTableWidget){
+    int rowNumber = m_pTableWidget->rowCount();
+    m_pTableWidget->insertRow(rowNumber);
+    QCheckBox* pCheckBox = new QCheckBox();
+    pCheckBox->setDisabled(true);
+    m_pTableWidget->setCellWidget(rowNumber,0, pCheckBox);
+    QDateEdit* pQde1 = new QDateEdit();
+    pQde1->setDisabled(true);
+    QDateEdit* pQde2 = new QDateEdit();
+    pQde2->setDisabled(true);
+    pQde2->setDateTime(QDateTime::currentDateTime());
+    m_pTableWidget->setCellWidget(rowNumber,2, pQde1);
+    m_pTableWidget->setCellWidget(rowNumber,3, pQde2);
+  }
+}
+
+void GUIWidget::downloadHistory ()
 {
   _log->clear();
   setEnabled(FALSE);
   _okButton->setEnabled(FALSE);
-  _cancelButton->setEnabled(TRUE);
   
   DateRange dr;
   QDateTime ed = QDateTime::currentDateTime();
-  QDateTime sd = dr.interval(ed, _range->currentIndex());
+  QDateTime sd = dr.interval(ed, DateRange::_YEAR5);
   
   _timer->start(100);
   
   YahooHistoryDownload function(this);
   connect(&function, SIGNAL(signalMessage(QString)), _log, SLOT(append(const QString &)));
-  connect(_cancelButton, SIGNAL(clicked()), &function, SLOT(stop()));
-  function.download(_symbolButton->files(), sd, ed);
-  
+  function.download(getTickers(), sd, ed);
   _timer->stop();
 
   setEnabled(TRUE);
   _okButton->setEnabled(TRUE);
-  _cancelButton->setEnabled(FALSE);
 }
 
-void
-GUIWidget::buttonStatus ()
+QStringList GUIWidget::getTickers()
 {
-  int count = 0;
-  
-  if (_symbolButton->fileCount())
-    count++;
-  
-  switch (count)
+  QStringList tickers;// = new QStringList();
+  for (int i = 0;i < m_pTableWidget->rowCount();i++ )
   {
-    case 1:
-      _okButton->setEnabled(TRUE);
-      break;
-    default:
-      _okButton->setEnabled(FALSE);
-      break;
+    QTableWidgetItem* pItem = m_pTableWidget->item(i,1);
+    if (pItem){
+      tickers.append(pItem->text());
+    }
   }
+  return tickers;
 }
 
-void
-GUIWidget::updateGUI ()
+void GUIWidget::updateGUI ()
 {
   QCoreApplication::processEvents();
 }
 
-void
-GUIWidget::loadSettings ()
+void GUIWidget::loadSettings ()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
-  _range->setCurrentIndex(settings.value(QString("dateRange"), DateRange::_YEAR).toInt());
-  _symbolButton->setFiles(settings.value(QString("symbolFiles"), QStringList() << "/tmp/yahoo_symbols").toStringList());
+  QStringList tickers = settings.value(QString("Stocks")).toStringList();
+  for(int i = 0; i < tickers.size(); i++){
+    int row = m_pTableWidget->rowCount();
+    addTableRow();
+    QTableWidgetItem *pItem = new QTableWidgetItem();
+    pItem->setText(tickers.at(i));
+    m_pTableWidget->setItem(row, 1, pItem);
+  }
 }
 
-void
-GUIWidget::saveSettings ()
+void GUIWidget::saveSettings ()
 {
   QSettings settings(g_settings);
   settings.beginGroup(g_session);
-  settings.setValue(QString("dateRange"), _range->currentIndex());
-  settings.setValue(QString("symbolFiles"), _symbolButton->files());
+  settings.setValue(QString("Stocks"), getTickers());
 }

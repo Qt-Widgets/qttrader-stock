@@ -27,9 +27,10 @@
 #include <QSplitter>
 #include <QHash>
 
-#include "Plot.h"
+#include "plot/Plot.h"
 #include "Widget.h"
 #include "ControlWidget.h"
+#include "ToolbarWidget.h"
 #include "DataBase.h"
 
 // Plots everything
@@ -90,6 +91,7 @@ class PlotWidget : public Widget
     QHash<QString, Plot *> _plots;
     QHash<QString, Entity *> _settings;
     ControlWidget *_controlWidget;
+    ToolbarWidget *_toolbarWidget;
     QString _removeName;
     //TODO remove
     bool first;

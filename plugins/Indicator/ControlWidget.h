@@ -31,9 +31,9 @@
 #include <QSettings>
 #include <QComboBox>
 
-#include "Bars.h"
+#include "bar/Bars.h"
 #include "LengthButton.h"
-#include "Plot.h"
+#include "plot/Plot.h"
 #include "DataBase.h"
 
 class ControlWidget : public QWidget
@@ -41,34 +41,18 @@ class ControlWidget : public QWidget
   Q_OBJECT
   
   signals:
-    void signalSelected ();
-    void signalIndicator ();
-    void signalLength ();
-
-    void signalRemovePlot ();
-    void signalEditPlot ();
-
-    //Should be replaced by timeFrameUpdated()
     void signalRefresh ();
     void signalRange (int);
     void signalScrollBarChanged (int);
 
-    //emitted when panning and/or zoom have changed
-    void timeFrameUpdated();
-
   public:
     ControlWidget ();
-    void createGUI ();
-    int count ();
-    Bars currentSymbol ();
-    int length ();
-    QString lengthText ();
-    int range ();
-    void setLength (int);
-    int scrollBarValue ();
+
     int saveSettings (DataBase *);
     int loadSettings (DataBase *);
     Entity * settings ();
+
+    int scrollBarValue ();
     int getRange();
 
 //  TODO: make -> private:
@@ -76,29 +60,13 @@ class ControlWidget : public QWidget
     void setPan (int min, int max, int page);
 
   public slots:
-    void updateSymbols ();
-    void previousSymbol ();
-    void nextSymbol ();
-    void search ();
-    void search2 (QString);
-    void buttonStatus ();
     void resizePanScrollBar (Plot *);
     void resizeZoom(int max);
-    void listSelected ();
-    void group ();
-    void group2 (QString);
     void rangeChanged(int);
 
-  protected:
-    LengthButton *_lengthButton;
-    QToolButton *_prevButton;
-    QToolButton *_nextButton;
-    QToolButton *_optionButton;
-    QList<Bars> _symbols;
+  private:
     QScrollBar *_panScrollbar;
     QScrollBar *_zoomScrollbar;
-    QString _search;    
-    QComboBox *_list;
     int mPlotRange;
 };
 

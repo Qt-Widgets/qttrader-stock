@@ -45,7 +45,6 @@ class Entity
     int size ();
     int saveSettings (QSettings &);
     int loadSettings (QSettings &);
-//    void order (QStringList &);
     void setName (QString);
     QString name ();
     QHash<QString, QVariant *> settings ();

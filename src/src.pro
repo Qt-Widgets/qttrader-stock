@@ -2,8 +2,6 @@
 # FILES
 #####################################################
 
-SOURCES += LaunchPluginDialog.cpp
-HEADERS += LaunchPluginDialog.h
 SOURCES += main.cpp
 SOURCES += qttrader.cpp
 HEADERS += qttrader.h
@@ -25,13 +23,15 @@ message("Using QMAKE_RPATHDIR=$$QMAKE_RPATHDIR")
 
 QMAKE_CXXFLAGS += -rdynamic -ffast-math
 
-INCLUDEPATH += /usr/local/qwt-5.2.2/include
+INCLUDEPATH += /usr/include/qwt
 INCLUDEPATH += /usr/local/include/ta-lib 
 INCLUDEPATH += ../lib
+INCLUDEPATH += ../lib/bar
+INCLUDEPATH += ../lib/curve
+INCLUDEPATH += ../lib/plot
 
-LIBS += -L/usr/lib
-LIBS += -L../lib -lQTTRADER
-LIBS += -L/usr/local/qwt-5.2.2/lib -lqwt
+LIBS += -L../lib -L/usr/lib -lQTTRADER -lqwt
+#LIBS += -L/usr/local/qwt-5.2.2/lib -lqwt
 
 TARGET = qttrader
 
@@ -48,6 +48,9 @@ QT += core
 QT += gui
 QT += sql
 QT += network
+
+RESOURCES += \
+    ../icons.qrc
 
 !exists(./build){
   system(echo $(mkdir) build)

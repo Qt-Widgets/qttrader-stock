@@ -20,59 +20,17 @@
  *  USA.
  */
 
-
+#include "MarkerTLineDialog.h"
 #include "MarkerTLine.h"
-#include "Strip.h"
 #include "Marker.h"
-#include "Plot.h"
-#include "PlotStatus.h"
-#include "PlotDateScaleDraw.h"
+#include "plot/Plot.h"
+#include "plot/PlotStatus.h"
+#include "plot/PlotDateScaleDraw.h"
 #include "Global.h"
 
 #include <QtGui>
 
-
-int
-MarkerTLine::command (PluginData *pd)
-{
-  int rc = 0;
-
-  QStringList cl;
-  cl << "type" << "info" << "highLow" << "move" << "click" << "create" << "settings";
-  
-  switch (cl.indexOf(pd->command))
-  {
-    case 0: // type
-      pd->type = QString("marker");
-      rc = 1;
-      break;
-    case 1: // info
-      rc = info(pd);
-      break;
-    case 2: // highLow
-      rc = highLow(pd);
-      break;
-    case 3: // move
-      rc = move(pd);
-      break;
-    case 4: // click
-      rc = click(pd);
-      break;
-    case 5: // create
-      rc = create(pd);
-      break;
-    case 6: // settings
-      rc = settings(pd);
-      break;
-    default:
-      break;
-  }
-  
-  return rc;
-}
-
-int
-MarkerTLine::draw (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRect &, void *m)
+int MarkerTLine::draw (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRectF &, void *m)
 {
 
   Marker *tline = (Marker *) m;
@@ -178,122 +136,108 @@ MarkerTLine::draw (QPainter *p, const QwtScaleMap &xMap, const QwtScaleMap &yMap
   return 1;
 }
 
-int
-MarkerTLine::info (PluginData *pd)
+int MarkerTLine::info (Entity *pEntity, QStringList &info)
 {
-  if (! pd->data)
-    return 0;
-  
-  Marker *tline = (Marker *) pd->data;
-  
-  Entity *e = tline->settings();
-  
-  QVariant *price = e->get(QString("price"));
+
+  QVariant *price = pEntity->get(QString("price"));
   if (! price)
     return 0;
 
-  QVariant *date = e->get(QString("date"));
+  QVariant *date = pEntity->get(QString("date"));
   if (! date)
     return 0;
   
-  QVariant *price2 = e->get(QString("price2"));
+  QVariant *price2 = pEntity->get(QString("price2"));
   if (! price2)
     return 0;
 
-  QVariant *date2 = e->get(QString("date2"));
+  QVariant *date2 = pEntity->get(QString("date2"));
   if (! date2)
     return 0;
 
-  pd->info << tr("TLine");
+  info<< tr("TLine");
 
   QDateTime dt = date->toDateTime();
-  pd->info << tr("Start Date") + "=" + dt.toString("yyyy-MM-dd");
-  pd->info << tr("Start Time") + "=" + dt.toString("HH:mm:ss");
+  info<< tr("Start Date") + "=" + dt.toString("yyyy-MM-dd");
+  info<< tr("Start Time") + "=" + dt.toString("HH:mm:ss");
 
   dt = date2->toDateTime();
-  pd->info << tr("End Date") + "=" + dt.toString("yyyy-MM-dd");
-  pd->info << tr("End Time") + "=" + dt.toString("HH:mm:ss");
+  info<< tr("End Date") + "=" + dt.toString("yyyy-MM-dd");
+  info<< tr("End Time") + "=" + dt.toString("HH:mm:ss");
 
-  Strip strip;
-  QString ts;
-  strip.strip(price->toDouble(), 4, ts);
-  pd->info << tr("Start Price") + "=" + ts;
+  QString ts = QString::number(price->toDouble(), 'f', 2);
+  info<< tr("Start Price") + "=" + ts;
 
-  strip.strip(price2->toDouble(), 4, ts);
-  pd->info << tr("End Price") + "=" + ts;
+  ts = QString::number(price2->toDouble(), 'f', 2);
+  info<< tr("End Price") + "=" + ts;
   
   return 1;
 }
 
-int
-MarkerTLine::move (PluginData *pd)
+int MarkerTLine::onMove(Marker* pMarker, int &status, QPoint point)
 {
-  if (! pd->data)
-    return 0;
-
-  Marker *tline = (Marker *) pd->data;
   
-  Entity *e = tline->settings();
+  Entity *pEntity = pMarker->settings();
   
-  switch (pd->status)
+  switch (status)
   {
     case PlotStatus::_MOVE:
     case PlotStatus::_CREATE_MOVE:
     {
-      QVariant *price = e->get(QString("price"));
+      QVariant *price = pEntity->get(QString("price"));
       if (! price)
         return 0;
 
-      QVariant *date = e->get(QString("date"));
+      QVariant *date = pEntity->get(QString("date"));
       if (! date)
         return 0;
   
-      QVariant *price2 = e->get(QString("price2"));
+      QVariant *price2 = pEntity->get(QString("price2"));
       if (! price2)
         return 0;
 
-      QVariant *date2 = e->get(QString("date2"));
+      QVariant *date2 = pEntity->get(QString("date2"));
       if (! date2)
         return 0;
       
-      QwtScaleMap map = tline->plot()->canvasMap(QwtPlot::xBottom);
-      int x = map.invTransform((double) pd->point.x());
+      QwtScaleMap map = pMarker->plot()->canvasMap(QwtPlot::xBottom);
+      int x = map.invTransform((double) point.x());
 
       date->setValue(g_symbol->date(x));
-      map = tline->plot()->canvasMap(QwtPlot::yRight);
-      price->setValue(map.invTransform((double) pd->point.y()));
+      map = pMarker->plot()->canvasMap(QwtPlot::yRight);
+      price->setValue(map.invTransform((double) point.y()));
 
-      if (pd->status == PlotStatus::_CREATE_MOVE)
+      if (status == PlotStatus::_CREATE_MOVE)
       {
         price2->setValue(price->toDouble());
         date2->setValue(g_symbol->date(x));
       }
 
-      tline->plot()->replot();
+      pMarker->plot()->replot();
 
-      tline->setModified(TRUE);
+      pMarker->setModified(true);
       break;
     }
     case PlotStatus::_MOVE2:
     {
-      QVariant *price2 = e->get(QString("price2"));
+      QVariant *price2 = pEntity->get(QString("price2"));
       if (! price2)
         return 0;
 
-      QVariant *date2 = e->get(QString("date2"));
+      QVariant *date2 = pEntity->get(QString("date2"));
       if (! date2)
         return 0;
 
-      QwtScaleMap map = tline->plot()->canvasMap(QwtPlot::xBottom);
-      int x = map.invTransform((double) pd->point.x());
+      QwtScaleMap map = pMarker->plot()->canvasMap(QwtPlot::xBottom);
+      int x = map.invTransform((double) point.x());
 
       date2->setValue(g_symbol->date(x));
-      map = tline->plot()->canvasMap(QwtPlot::yRight);
-      price2->setValue(map.invTransform((double) pd->point.y()));
+      map = pMarker->plot()->canvasMap(QwtPlot::yRight);
+      price2->setValue(map.invTransform((double) point.y()));
 
-      tline->plot()->replot();
+      pMarker->plot()->replot();
 
-      tline->setModified(TRUE);
+      pMarker->setModified(true);
       break;
     }
     default:
@@ -303,60 +247,52 @@ MarkerTLine::move (PluginData *pd)
   return 1;
 }
 
-int
-MarkerTLine::highLow (PluginData *pd)
+int MarkerTLine::highLow (Entity* pEntity, int &high, int &low, QwtPlot* pPlot, int start, int end)
 {
-  if (! pd->data)
-    return 0;
-  
-  Marker *tline = (Marker *) pd->data;
-  
-  Entity *e = tline->settings();
-  
-  PlotDateScaleDraw *dsd = (PlotDateScaleDraw *) tline->plot()->axisScaleDraw(QwtPlot::xBottom);
-  if (! dsd)
+  PlotDateScaleDraw *pDateScaleDraw = (PlotDateScaleDraw *) pPlot->axisScaleDraw(QwtPlot::xBottom);
+  if (! pDateScaleDraw)
     return 1;
 
-  QVariant *date = e->get(QString("date"));
+  QVariant *date = pEntity->get(QString("date"));
   if (! date)
     return 0;
   
-  QVariant *date2 = e->get(QString("date2"));
+  QVariant *date2 = pEntity->get(QString("date2"));
   if (! date2)
     return 0;
 
-  QVariant *price = e->get(QString("price"));
+  QVariant *price = pEntity->get(QString("price"));
   if (! price)
     return 0;
 
-  QVariant *price2 = e->get(QString("price2"));
+  QVariant *price2 = pEntity->get(QString("price2"));
   if (! price2)
     return 0;
   
-  int x = dsd->dateToX(date->toDateTime());
-  if (x >= pd->start && x <= pd->end)
+  int x = pDateScaleDraw->dateToX(date->toDateTime());
+  if (x >= start && x <= end)
   {
-    pd->high = price->toDouble();
+    high = price->toDouble();
     double t = price2->toDouble();
-    if (t > pd->high)
-      pd->high = t;
-    pd->low = price->toDouble();
-    if (t < pd->low)
-      pd->low = t;
+    if (t > high)
+      high = t;
+    low = price->toDouble();
+    if (t < low)
+      low = t;
     
     return 1;
   }
 
-  int x2 = dsd->dateToX(date2->toDateTime());
-  if (x2 >= pd->start && x2 <= pd->end)
+  int x2 = pDateScaleDraw->dateToX(date2->toDateTime());
+  if (x2 >= start && x2 <= end)
   {
-    pd->high = price->toDouble();
+    high = price->toDouble();
     double t = price2->toDouble();
-    if (t > pd->high)
-      pd->high = t;
-    pd->low = price->toDouble();
-    if (t < pd->low)
-      pd->low = t;
+    if (t > high)
+      high = t;
+    low = price->toDouble();
+    if (t < low)
+      low = t;
     
     return 1;
   }
@@ -364,47 +300,40 @@ MarkerTLine::highLow (PluginData *pd)
   return 1;
 }
 
-int
-MarkerTLine::click (PluginData *pd)
+int MarkerTLine::onClick(Marker* pMarker, int &status, QPoint point, int button)
 {
-
 //  qDebug() << "MarkerTLine::click";
-  if (! pd->data)
-    return 0;
-  
-  Marker *tline = (Marker *) pd->data;
-  
-  switch (pd->status)
+  switch (status)
   {
     case PlotStatus::_SELECTED:
     {
-      switch (pd->button)
+      switch (button)
       {
         case Qt::LeftButton:
         {
-          int grab = tline->isGrabSelected(pd->point);
+          int grab = pMarker->isGrabSelected(point);
           if (grab)
           {
-            pd->status = PlotStatus::_MOVE;
+            status = PlotStatus::_MOVE;
             if (grab == 2)
-              pd->status = PlotStatus::_MOVE2;
+              status = PlotStatus::_MOVE2;
             return 1;
           }
 
-          if (! tline->isSelected(pd->point))
+          if (! pMarker->isSelected(point))
           {
-            pd->status = PlotStatus::_NONE;
-            tline->setSelected(FALSE);
-            Plot *tplot = (Plot *) tline->plot();
+            status = PlotStatus::_NONE;
+            pMarker->setSelected(false);
+            Plot *tplot = (Plot *) pMarker->plot();
             tplot->unselectMarker();
-            tline->plot()->replot();
+            pMarker->plot()->replot();
             return 1;
           }
           break;
         }
         case Qt::RightButton:
         {
-          Plot *p = (Plot *) tline->plot();
+          Plot *p = (Plot *) pMarker->plot();
           p->showMarkerMenu();
           break;
         }
@@ -417,17 +346,16 @@ MarkerTLine::click (PluginData *pd)
     case PlotStatus::_MOVE:
     case PlotStatus::_CREATE_MOVE:
     {
-      switch (pd->button)
+      switch (button)
       {
         case Qt::LeftButton:
-          if (pd->status == PlotStatus::_CREATE_MOVE)
+          if (status == PlotStatus::_CREATE_MOVE)
           {
-            pd->status = PlotStatus::_MOVE2;
+            status = PlotStatus::_MOVE2;
             emit signalMessage(tr("Select TLine ending point..."));
             return 1;
           }
-
-          pd->status = PlotStatus::_SELECTED;
+          status = PlotStatus::_SELECTED;
           return 1;
         default:
           break;
@@ -437,10 +365,10 @@ MarkerTLine::click (PluginData *pd)
     }
     case PlotStatus::_MOVE2:
     {
-      switch (pd->button)
+      switch (button)
       {
         case Qt::LeftButton:
-          pd->status = PlotStatus::_SELECTED;
+          status = PlotStatus::_SELECTED;
           return 1;
         default:
           break;
@@ -450,18 +378,18 @@ MarkerTLine::click (PluginData *pd)
     }
     default: // _None
     {
-      switch (pd->button)
+      switch (button)
       {
         case Qt::LeftButton:
         {
-          if (tline->isSelected(pd->point))
+          if (pMarker->isSelected(point))
           {
-            pd->status = PlotStatus::_SELECTED;
-            tline->setSelected(TRUE);
-            Plot *tplot = (Plot *) tline->plot();
+            status = PlotStatus::_SELECTED;
+            pMarker->setSelected(true);
+            Plot *tplot = (Plot *) pMarker->plot();
             
-            tplot->selectMarker(tline->ID());
-            tline->plot()->replot();
+            tplot->selectMarker(pMarker->ID());
+            pMarker->plot()->replot();
             return 1;
           }
           break;
@@ -477,24 +405,15 @@ MarkerTLine::click (PluginData *pd)
   return 1;
 }
 
-int
-MarkerTLine::create (PluginData *pd)
-{
-
-    printf("create");
-  if (! pd->data)
-    return 0;
-  
-  Marker *tline = (Marker *) pd->data;
-  
-  pd->status = PlotStatus::_CREATE_MOVE;
-  tline->setSelected(TRUE);
+int MarkerTLine::create(Marker* pMarker, int &status)
+{  
+  status = PlotStatus::_CREATE_MOVE;
+  pMarker->setSelected(true);
   emit signalMessage(tr("Place TLine marker..."));
   return 1;
 }
 
-int
-MarkerTLine::settings (PluginData *pd)
+Entity* MarkerTLine::querySettings()
 {
   Entity *e = new Entity;
   e->set(QString("plot"), new QVariant(QString()));
@@ -506,11 +425,21 @@ MarkerTLine::settings (PluginData *pd)
   e->set(QString("date2"), new QVariant(QDateTime::currentDateTime()));
   e->set(QString("price2"), new QVariant(0.0));
   e->set(QString("color"), new QVariant(QString("red")));
-  e->set(QString("extend"), new QVariant(FALSE));
-  pd->settings = e;
-  
-  return 1;
+  e->set(QString("extend"), new QVariant(false));
+  return e;
+}
+
+QDialog* MarkerTLine::getDialog(QWidget* dialogParent, Entity* settings)
+{
+    if (!dialogParent || !settings){
+      qDebug() << "MarkerTLine::getDialog: invalid arguments";
+      return 0;
+    }
+
+    MarkerTLineDialog *dialog = new MarkerTLineDialog(dialogParent);
+    dialog->setGUI(settings);
+    return dialog;
 }
 
 // do not remove
-Q_EXPORT_PLUGIN2(markertline, MarkerTLine);
+Q_EXPORT_PLUGIN2(markertline, MarkerTLine)

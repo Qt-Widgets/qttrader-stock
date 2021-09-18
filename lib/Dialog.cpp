@@ -20,7 +20,6 @@
  */
 
 #include "Dialog.h"
-#include "Doc.h"
 #include "Global.h"
 
 #include <QtDebug>
@@ -28,7 +27,6 @@
 
 Dialog::Dialog (QWidget *p) : QDialog (p)
 {
-  _helpFile = "main.html";
   connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
 
   // main vbox
@@ -60,13 +58,9 @@ Dialog::Dialog (QWidget *p) : QDialog (p)
   // cancel button
   _cancelButton = _buttonBox->addButton(QDialogButtonBox::Cancel);
   _cancelButton->setText(tr("&Cancel"));
-  _cancelButton->setDefault(TRUE);
+  _cancelButton->setDefault(true);
   _cancelButton->setFocus();
 
-  // help button
-  _helpButton = _buttonBox->button(QDialogButtonBox::Help);
-  _helpButton->setText(tr("&Help"));
-  connect(_helpButton, SIGNAL(clicked()), this, SLOT(help()));
 }
 
 Dialog::~Dialog ()
@@ -78,13 +72,6 @@ Dialog::~Dialog ()
 void Dialog::done ()
 {
   accept();
-}
-
-// virtual
-void Dialog::help ()
-{
-  Doc *doc = new Doc;
-  doc->showDocumentation(_helpFile);
 }
 
 // virtual

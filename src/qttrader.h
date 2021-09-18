@@ -2,6 +2,7 @@
  *  QtTrader stock charter
  *
  *  Copyright (C) 2001-2010 Stefan S. Stratigakos
+ *  Copyright (C) 2013 Mattias Johansson
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,15 +46,9 @@ class QtTrader : public QMainWindow
     void wakeup ();
     void shutDown ();
     int loadPlugin (QString);
-    void pluginDialog ();
-    void pluginDialog2 (QString);
-    void newPluginDialog ();
-    void help ();
-    void runSession ();
-    void runSession2 (QString);
-    
-  private:
-    QString _helpFile;
+    void about();
+    void pluginLoader();
+
 };
 
 #endif  //QTTRADER_H

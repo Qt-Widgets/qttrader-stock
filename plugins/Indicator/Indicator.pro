@@ -4,12 +4,14 @@
 TEMPLATE = lib
 CONFIG += plugin
 INCLUDEPATH += ../../lib
-LIBS += -L../../lib -lQTTRADER -lta_common -lta_func -lta_abstract
+LIBS += -L../../lib -lQTTRADER -lta_lib
 MOC_DIR += build
 OBJECTS_DIR += build
 
-HEADERS += ControlWidget.h
-SOURCES += ControlWidget.cpp
+HEADERS += ControlWidget.h \
+    ToolbarWidget.h
+SOURCES += ControlWidget.cpp \
+    ToolbarWidget.cpp
 HEADERS += Indicator.h
 SOURCES += Indicator.cpp
 HEADERS += IndicatorDialog.h
@@ -18,10 +20,8 @@ HEADERS += LengthButton.h
 SOURCES += LengthButton.cpp
 HEADERS += PlotWidget.h
 SOURCES += PlotWidget.cpp
-HEADERS +=
-SOURCES +=
 
-target.path = "$${INSTALL_PLUGIN_DIR}"
+target.path = "$${INSTALL_PLUGIN_DIR}"/Indicator
 INSTALLS += target
 
 QT += core
@@ -35,3 +35,6 @@ OTHER_FILES += \
 !exists(./build){
   system(echo mkdir build)
 }
+
+RESOURCES += \
+    ../../icons.qrc

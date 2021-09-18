@@ -44,9 +44,6 @@ class DataBase
     int get (Entity *);
     int getTypes (QString type, QStringList &);
     int names (QStringList &);
-//    int search (EAVSearch &, QStringList &);
-//    int keys (QStringList &);
-//    int attributeValues (QString field, QStringList &l);
 
   protected:
     QSqlDatabase _db;

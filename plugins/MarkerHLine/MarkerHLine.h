@@ -25,25 +25,34 @@
 
 #include <QObject>
 
-#include "Plugin.h"
+#include "QtTraderPlugin.h"
 
-class MarkerHLine : public QObject, public Plugin
+class MarkerHLine : public QObject, public IMarkerPlugin
 {
   Q_OBJECT
-  Q_INTERFACES(Plugin)
+    Q_INTERFACES(IMarkerPlugin)
+    Q_INTERFACES(QtTraderPlugin)
   
   signals:
     void signalMessage (QString);
   
   public:
-    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRect &, void *);
-    int command (PluginData *);    
-    int info (PluginData *);
-    int highLow (PluginData *);
-    int move (PluginData *);
-    int click (PluginData *);
-    int create (PluginData *);
-    int settings (PluginData *);
+
+    QString pluginName() { return QString("Horizontal line");}
+    QString pluginVersion() { return QString("0.1");}
+
+
+    int onMove(Marker* pMarker, int &status, QPoint point);
+    int onClick(Marker* pMarker, int &status, QPoint point, int button);
+
+    int info(Entity *pEntity, QStringList &info);
+    int highLow(Entity* pEntity, int &high, int &low, QwtPlot* , int , int );
+    int create(Marker* pMarker, int &status);
+
+    Entity* querySettings();
+    QDialog* getDialog(QWidget *dialogParent, Entity* settings);
+
+    int draw (QPainter *, const QwtScaleMap &, const QwtScaleMap &, const QRectF &, void *);
 };
 
 #endif

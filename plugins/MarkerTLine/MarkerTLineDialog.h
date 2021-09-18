@@ -44,7 +44,6 @@ class MarkerTLineDialog : public QDialog
   public slots:
     void done ();
     void cancel ();
-    void help ();
     void loadSettings ();
     void saveSettings ();
     void valueChanged ();
@@ -56,7 +55,6 @@ class MarkerTLineDialog : public QDialog
     QDialogButtonBox *_buttonBox;
     QPushButton *_okButton;
     QPushButton *_cancelButton;
-    QString _helpFile;
     int _modified;
     ColorButton *_color;
     QDoubleSpinBox *_price;

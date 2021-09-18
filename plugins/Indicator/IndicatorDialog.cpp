@@ -28,7 +28,7 @@
 IndicatorDialog::IndicatorDialog (QWidget *p) : Dialog (p)
 {
   _keySize = "indicator_dialog_size";
-  _keyPos = "indicator_dialog_pos";;
+  _keyPos = "indicator_dialog_pos";
 
   // indicators
   QSettings settings(g_settings);
